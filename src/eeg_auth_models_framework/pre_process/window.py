@@ -1,17 +1,19 @@
 import typing
-
 import pandas as pd
 
+from .base import PreProcessStep
 
-class DataWindowBuilder:
+
+class DataWindowStep(PreProcessStep):
     """
     Utility class used for generating windowed data.
     """
-    def __init__(self, window_size: int, overlap: float = 0):
+    def __init__(self, window_size: int, overlap: float = 0, use_original_data=False):
+        super().__init__(use_original_data)
         self.window_size = window_size
         self.overlap = overlap
 
-    def create_windows(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
+    def apply(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
         """
         Converts the given DataFrame into a list of frames.
 

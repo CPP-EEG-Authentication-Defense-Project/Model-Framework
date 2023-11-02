@@ -5,6 +5,8 @@ import mne.io
 import pandas as pd
 import numpy as np
 
+from .base import PreProcessStep
+
 
 RawMNE = typing.Union[mne.io.Raw, mne.io.RawArray]
 RawFrequencyDataMap = typing.Dict[str, RawMNE]
@@ -20,25 +22,32 @@ class FrequencyBand:
     label: str
 
 
-class EEGBandpassFilter:
+class EEGBandpassFilterStep(PreProcessStep):
     """
     Bandpass filter, implemented using MNE in the backend.
     """
-    def __init__(self, frequencies: typing.List[FrequencyBand]):
+    def __init__(self,
+                 frequencies: typing.List[FrequencyBand],
+                 channels: typing.List[str],
+                 sample_frequency: int,
+                 use_original_data=False):
+        super().__init__(use_original_data)
         self.bands = frequencies
+        self.channels = channels
+        self.sample_frequency = sample_frequency
 
-    def apply_filter(self, data: mne.io.RawArray, channels: typing.List[str]) -> pd.DataFrame:
+    def apply(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Applies filtration to the given MNE format EEG data, generating the output as a Pandas DataFrame.
 
         :param data: the MNE format EEG data to apply filtration to.
-        :param channels: a list of channels to return in the final DataFrame.
         :return: a Pandas DataFrame representing the filtered EEG data.
         """
+        mne_data = self._convert_dataframe_to_mne(data)
         frequencies_map: RawFrequencyDataMap = {}
 
         for frequency in self.bands:
-            filtered_data: RawMNE = copy.deepcopy(data)
+            filtered_data: RawMNE = copy.deepcopy(mne_data)
             if frequency.upper is not None or frequency.lower is not None:
                 filtered_data: mne.io.Raw = filtered_data.filter(
                     l_freq=frequency.lower,
@@ -49,7 +58,18 @@ class EEGBandpassFilter:
                 )
             frequencies_map[frequency.label] = filtered_data
 
-        return self._map_channels(frequencies_map, channels)
+        return self._map_channels(frequencies_map, self.channels)
+
+    def _convert_dataframe_to_mne(self, dataframe: pd.DataFrame) -> mne.io.RawArray:
+        """
+        Helper method which converts the given dataframe into an MNE format array.
+
+        :param dataframe: the dataframe to convert.
+        :return: an MNE format array of data.
+        """
+        transposed_dataframe = dataframe.transpose(copy=True)
+        data_info = mne.create_info(self.channels, self.sample_frequency, ch_types='eeg')
+        return mne.io.RawArray(transposed_dataframe.to_numpy(), data_info)
 
     @staticmethod
     def _map_channels(frequencies_map: RawFrequencyDataMap, channels: typing.List[str]) -> pd.DataFrame:

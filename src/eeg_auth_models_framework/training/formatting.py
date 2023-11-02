@@ -25,7 +25,7 @@ class AuditoryTrainingDataFormatter(TrainingDataFormatter):
             if data_file.suffix == '.csv':
                 subject_identifier = self._get_subject_identifier(data_file.name)
                 dataframe = pd.read_csv(data_file, index_col=0, header=0)
-                loaded_data_map[subject_identifier] = dataframe
+                loaded_data_map[subject_identifier] = [dataframe]
 
         return loaded_data_map
 

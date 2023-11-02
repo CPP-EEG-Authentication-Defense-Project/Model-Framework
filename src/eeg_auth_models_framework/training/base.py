@@ -4,7 +4,7 @@ import typing
 import pandas as pd
 
 
-SubjectDataMap = typing.Dict[str, pd.DataFrame]
+SubjectDataMap = typing.Dict[str, typing.List[pd.DataFrame]]
 
 
 class TrainingDataFormatter(abc.ABC):
