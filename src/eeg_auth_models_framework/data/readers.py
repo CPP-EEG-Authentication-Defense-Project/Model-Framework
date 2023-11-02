@@ -1,10 +1,11 @@
 import re
+
 import pandas as pd
 
-from .base import TrainingDataFormatter
+from .base import DatasetReader
 
 
-class AuditoryTrainingDataFormatter(TrainingDataFormatter):
+class AuditoryDataReader(DatasetReader):
     """
     Utility class which reads the auditory dataset and generates a map
     of subject data.

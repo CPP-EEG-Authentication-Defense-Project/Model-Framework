@@ -1,10 +1,12 @@
 import abc
 import pathlib
+import typing
 import platformdirs
 import shutil
 import logging
 
 
+T = typing.TypeVar('T')
 APP_NAME = 'eeg-auth-defense-models'
 AUTHOR = 'auth-defense-proj'
 _logger = logging.getLogger('eeg-auth-defense-models')
@@ -51,3 +53,9 @@ class DatasetDownloader(abc.ABC):
         """
         root_path = pathlib.Path(platformdirs.user_cache_dir(APP_NAME, AUTHOR))
         return root_path / self.label
+
+
+class DatasetReader(abc.ABC, typing.Generic[T]):
+    @abc.abstractmethod
+    def format_data(self, dataset_path: pathlib.Path) -> typing.Dict[str, typing.List[T]]:
+        pass
