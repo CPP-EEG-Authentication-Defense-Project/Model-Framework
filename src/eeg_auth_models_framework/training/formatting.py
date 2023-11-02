@@ -1,43 +1,10 @@
-import pathlib
 import re
-import typing
-
 import pandas as pd
 
-
-SubjectDataMap = typing.Dict[str, pd.DataFrame]
-
-
-class DataWindowFormatter:
-    """
-    Utility class used for generating windowed data.
-    """
-    def __init__(self, window_size: int, overlap: float = 0):
-        self.window_size = window_size
-        self.overlap = overlap
-
-    def create_windows(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
-        """
-        Converts the given DataFrame into a list of frames.
-
-        :param data: The DataFrame to convert,
-        :return: The list of frames.
-        """
-        windowed_data = []
-        start = 0
-        end = self.window_size
-
-        while end <= len(data):
-            window = data[start:end]
-            windowed_data.append(window)
-
-            start += int(self.window_size * (1 - self.overlap))
-            end += int(self.window_size * (1 - self.overlap))
-
-        return windowed_data
+from .base import TrainingDataFormatter
 
 
-class AuditoryDataFormatter:
+class AuditoryTrainingDataFormatter(TrainingDataFormatter):
     """
     Utility class which reads the auditory dataset and generates a map
     of subject data.
@@ -45,7 +12,7 @@ class AuditoryDataFormatter:
     def __init__(self):
         self.identifier_pattern = re.compile(r'(?P<identifier>s\d{2})')
 
-    def format_data(self, dataset_path: pathlib.Path) -> SubjectDataMap:
+    def format_data(self, dataset_path):
         """
         Reads all data files in the given directory path and generates a structure of dataframes.
 
