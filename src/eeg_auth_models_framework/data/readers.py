@@ -5,7 +5,7 @@ import pandas as pd
 from .base import DatasetReader
 
 
-class AuditoryDataReader(DatasetReader):
+class AuditoryDataReader(DatasetReader[pd.DataFrame]):
     """
     Utility class which reads the auditory dataset and generates a map
     of subject data.
