@@ -15,7 +15,7 @@ class StatisticalFeature(enum.Enum):
     ZERO_CROSSING_RATE = enum.auto()
 
 
-class StatisticalFeatureExtractor(base.BaseFeatureExtractor):
+class StatisticalFeatureExtractor(base.FeatureExtractor):
     """
     Extracts statistical features from EEG data and generates feature vectors.
     """

@@ -9,7 +9,7 @@ PandasData = typing.Union[pd.Series, pd.DataFrame]
 NumberResult = typing.Union[int, float]
 
 
-class BaseFeatureExtractor(abc.ABC):
+class FeatureExtractor(abc.ABC):
     """
     Base for feature extractor classes to inherit from. Defines the common interface for interacting with
     the feature extractors.

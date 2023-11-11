@@ -36,14 +36,23 @@ class EEGBandpassFilterStep(PreProcessStep):
         self.channels = channels
         self.sample_frequency = sample_frequency
 
-    def apply(self, data: pd.DataFrame) -> pd.DataFrame:
+    def apply(self, data: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
         """
-        Applies filtration to the given MNE format EEG data, generating the output as a Pandas DataFrame.
+        Applies filtration to the given EEG data in Pandas DataFrames, generating the output as new DataFrames.
 
-        :param data: the MNE format EEG data to apply filtration to.
-        :return: a Pandas DataFrame representing the filtered EEG data.
+        :param data: the EEG data to apply filtration to.
+        :return: a list of Pandas DataFrame representing the filtered EEG data.
         """
-        mne_data = self._convert_dataframe_to_mne(data)
+        return [self._run_filtration(frame) for frame in data]
+
+    def _run_filtration(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """
+        Executes filtration on a particular DataFrame, generating a new DataFrame with the filtered data.
+
+        :param dataframe: the DataFrame to filter.
+        :return: the filtered DataFrame.
+        """
+        mne_data = self._convert_dataframe_to_mne(dataframe)
         frequencies_map: RawFrequencyDataMap = {}
 
         for frequency in self.bands:

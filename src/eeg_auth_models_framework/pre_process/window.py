@@ -13,19 +13,33 @@ class DataWindowStep(PreProcessStep):
         self.window_size = window_size
         self.overlap = overlap
 
-    def apply(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
+    def apply(self, data: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
         """
-        Converts the given DataFrame into a list of frames.
+        Expands the given DataFrames into a larger list of frames based on configured window size.
 
-        :param data: The DataFrame to convert,
+        :param data: The DataFrames to convert,
         :return: The list of frames.
+        """
+        windowed_frames = []
+
+        for dataframe in data:
+            windowed_frames.extend(self._create_windows(dataframe))
+
+        return windowed_frames
+
+    def _create_windows(self, dataframe: pd.DataFrame) -> typing.List[pd.DataFrame]:
+        """
+        Generates windowed data from the given DataFrame.
+
+        :param dataframe: the DataFrame to create windows from.
+        :return: the window frames.
         """
         windowed_data = []
         start = 0
         end = self.window_size
 
-        while end <= len(data):
-            window = data[start:end]
+        while end <= len(dataframe):
+            window = dataframe[start:end]
             windowed_data.append(window)
 
             start += int(self.window_size * (1 - self.overlap))

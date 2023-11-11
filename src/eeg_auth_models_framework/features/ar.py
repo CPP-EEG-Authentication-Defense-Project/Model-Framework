@@ -5,7 +5,7 @@ from statsmodels.tsa import ar_model
 from . import base
 
 
-class ARFeatureExtractor(base.BaseFeatureExtractor):
+class ARFeatureExtractor(base.FeatureExtractor):
     """
     Trains AR models on EEG channel data and returns the coefficients of those models as features in a vector.
     """
