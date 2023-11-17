@@ -83,7 +83,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :return: a numpy array of feature data.
         """
         feature_components = [extractor.extract(data) for extractor in self.feature_extraction_steps]
-        return np.array(itertools.chain.from_iterable(feature_components))
+        return np.array(list(itertools.chain.from_iterable(feature_components)))
 
     def train(self, k_folds=10) -> M:
         """
