@@ -7,14 +7,14 @@ import numpy as np
 from .pre_process.base import PreProcessStep
 from .features.base import FeatureExtractor
 from .data.base import DatasetDownloader, DatasetReader
+from .training.base import DataLabeller, StratifiedSubjectData
+from .training.labelling import SubjectDataStratificationHandler
 
 
-T = typing.TypeVar('T')
-L = typing.TypeVar('L')
 M = typing.TypeVar('M')
 
 
-class BaseModelBuilder(abc.ABC, typing.Generic[T, L, M]):
+class ModelBuilder(abc.ABC, typing.Generic[M]):
     """
     Base model builder class used to abstract the process of constructing the pre-processing and feature extraction
     necessary to construct an EEG authentication model.
@@ -45,18 +45,13 @@ class BaseModelBuilder(abc.ABC, typing.Generic[T, L, M]):
         """
         pass
 
+    @property
     @abc.abstractmethod
-    def label_training_data(self, training_data: T) -> L:
-        """
-        Executes labelling of training data.
-
-        :param training_data: the training data to label.
-        :return: the labelled training data.
-        """
+    def labeller(self) -> DataLabeller:
         pass
 
     @abc.abstractmethod
-    def run_training(self, labelled_data: L) -> M:
+    def run_training(self, labelled_data: typing.Dict[str, typing.List[StratifiedSubjectData]]) -> M:
         """
         Executes model training, returning the final model results.
 
@@ -90,7 +85,7 @@ class BaseModelBuilder(abc.ABC, typing.Generic[T, L, M]):
         feature_components = [extractor.extract(data) for extractor in self.feature_extraction_steps]
         return np.array(itertools.chain.from_iterable(feature_components))
 
-    def train(self) -> M:
+    def train(self, k_folds=10) -> M:
         """
         Initiates the process of training an authentication model using the current configuration.
 
@@ -102,8 +97,10 @@ class BaseModelBuilder(abc.ABC, typing.Generic[T, L, M]):
             training_data[subject] = self._apply_pre_process_steps(data)
         for subject, data in training_data.items():
             training_data[subject] = self._apply_feature_extraction_steps(data)
-        labelled_data = self.label_training_data(training_data)
-        return self.run_training(labelled_data)
+        labelled_data = self.labeller.label_data(training_data)
+        stratification_handler = SubjectDataStratificationHandler(k_folds)
+        stratified_data = stratification_handler.get_k_folds_data(labelled_data)
+        return self.run_training(stratified_data)
 
     def _apply_pre_process_steps(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
         """
