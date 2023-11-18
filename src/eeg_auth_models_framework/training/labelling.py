@@ -90,7 +90,7 @@ class SubjectDataStratificationHandler(typing.Generic[D]):
             )
             test_pair = StratifiedPair(
                 x_data[test],
-                x_data[test]
+                y_data[test]
             )
             stratified_data.append(
                 StratifiedSubjectData(train_pair, test_pair)
