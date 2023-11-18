@@ -100,7 +100,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         labelled_data = self.labeller.label_data(training_data)
         stratification_handler = SubjectDataStratificationHandler(k_folds)
         stratified_data = stratification_handler.get_k_folds_data(labelled_data)
-        return self.run_training(stratified_data)
+        return self.run_training(stratified_data)   # TODO: implement standard scoring/result return mechanism
 
     def _apply_pre_process_steps(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
         """
