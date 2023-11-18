@@ -15,7 +15,7 @@ class SubjectDataLabeller(DataLabeller):
     def label_data(self, data):
         labelled_data = {}
 
-        for key in labelled_data:
+        for key in data:
             labelled_data[key] = self._generate_labels_for_subject(data, key)
 
         return labelled_data
