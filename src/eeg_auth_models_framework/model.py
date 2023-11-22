@@ -147,7 +147,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         feature_components = [extractor.extract(data) for extractor in self.feature_extraction_steps]
         return np.array(list(itertools.chain.from_iterable(feature_components)))
 
-    def train(self, k_folds=10) -> M:
+    def train(self, k_folds=10) -> TrainingResult[M]:
         """
         Initiates the process of training an authentication model using the current configuration.
 
