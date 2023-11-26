@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 import numpy.typing as np_types
 
-from .pre_process.base import PreProcessStep
-from .features.base import FeatureExtractor
+from .pre_process.pipeline import PreProcessingPipeline
+from .features.pipeline import FeatureExtractPipeline
 from .data.base import DatasetDownloader, DatasetReader
 from .training.base import DataLabeller, StratifiedSubjectData
 from .training.labelling import SubjectDataStratificationHandler
@@ -26,10 +26,10 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
     necessary to construct an EEG authentication model.
     """
     def __init__(self,
-                 pre_process: typing.List[PreProcessStep] = None,
-                 feature_extraction: typing.List[FeatureExtractor] = None):
-        self.pre_process_steps = pre_process or []
-        self.feature_extraction_steps = feature_extraction or []
+                 pre_process: PreProcessingPipeline,
+                 feature_extraction: FeatureExtractPipeline):
+        self.pre_process_steps = pre_process
+        self.feature_extraction_steps = feature_extraction
 
     @property
     @abc.abstractmethod
@@ -122,31 +122,6 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
             training_scores
         )
 
-    def pre_process(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
-        """
-        Executes pre-processing steps on the given DataFrame, returning a list of DataFrames generated from
-        processing.
-
-        :param data: the data to apply pre-processing steps to.
-        :return: the list of processed DataFrame instances.
-        """
-        dataframes = [data]
-
-        for step in self.pre_process_steps:
-            dataframes = step.apply(dataframes)
-
-        return dataframes
-
-    def extract_features(self, data: pd.DataFrame) -> np.ndarray:
-        """
-        Executes feature extraction steps on the given DataFrame, returning a numpy array of feature data.
-
-        :param data: the DataFrame to extract features from.
-        :return: a numpy array of feature data.
-        """
-        feature_components = [extractor.extract(data) for extractor in self.feature_extraction_steps]
-        return np.array(list(itertools.chain.from_iterable(feature_components)))
-
     def train(self, k_folds=10) -> TrainingResult[M]:
         """
         Initiates the process of training an authentication model using the current configuration.
@@ -186,7 +161,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         pre_process_results = []
 
         for frame in dataframes:
-            pre_process_results.append(self.pre_process(frame))
+            pre_process_results.append(self.pre_process_steps.pre_process(frame))
 
         return list(itertools.chain.from_iterable(pre_process_results))
 
@@ -198,4 +173,4 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :param dataframes: the list of DataFrames to extract feature data from.
         :return: a list of numpy arrays containing feature data.
         """
-        return [self.extract_features(frame) for frame in dataframes]
+        return [self.feature_extraction_steps.extract_features(frame) for frame in dataframes]
