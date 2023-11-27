@@ -8,8 +8,7 @@ class DataWindowStep(PreProcessStep):
     """
     Utility class used for generating windowed data.
     """
-    def __init__(self, window_size: int, overlap: float = 0, use_original_data=False):
-        super().__init__(use_original_data)
+    def __init__(self, window_size: int, overlap: float = 0):
         self.window_size = window_size
         self.overlap = overlap
 

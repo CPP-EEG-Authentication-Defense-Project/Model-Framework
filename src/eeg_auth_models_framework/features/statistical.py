@@ -12,6 +12,7 @@ class StatisticalFeature(enum.Enum):
     MIN = enum.auto()
     MAX = enum.auto()
     MEAN = enum.auto()
+    STD_DEV = enum.auto()
     ZERO_CROSSING_RATE = enum.auto()
 
 
@@ -36,6 +37,8 @@ class StatisticalFeatureExtractor(base.FeatureExtractor):
             extractors.append(extract_max)
         if StatisticalFeature.MEAN in self.features:
             extractors.append(extract_mean)
+        if StatisticalFeature.STD_DEV in self.features:
+            extractors.append(extract_std_dev)
         if StatisticalFeature.ZERO_CROSSING_RATE in self.features:
             extractors.append(extract_zero_crossing_rate)
         return extractors
@@ -82,6 +85,16 @@ def extract_mean(data: base.PandasData) -> base.NumberResult:
     :return: the mean value.
     """
     return data.mean()
+
+
+def extract_std_dev(data: base.PandasData) -> base.NumberResult:
+    """
+    Retrieves the statistical standard deviation from the given data.
+
+    :param data: the data to retrieve the standard deviation from.
+    :return: the standard deviation.
+    """
+    return data.std()
 
 
 def extract_zero_crossing_rate(data: base.PandasData) -> base.NumberResult:
