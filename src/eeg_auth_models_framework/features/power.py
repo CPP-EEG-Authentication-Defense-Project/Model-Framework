@@ -20,4 +20,4 @@ class PSDExtractor(base.FeatureExtractor):
         power_spectrum: np.ndarray
         frequencies: np.ndarray
         power_spectrum, frequencies = spectrum_data.get_data(return_freqs=True)
-        return power_spectrum
+        return power_spectrum.flatten()
