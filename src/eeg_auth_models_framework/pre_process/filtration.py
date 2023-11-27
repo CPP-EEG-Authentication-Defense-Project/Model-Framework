@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 
 from .base import PreProcessStep
+from ..utils.conversion import MNEDataFrameConverter
 
 
 RawMNE = typing.Union[mne.io.Raw, mne.io.RawArray]
@@ -26,13 +27,9 @@ class EEGBandpassFilterStep(PreProcessStep):
     """
     Bandpass filter, implemented using MNE in the backend.
     """
-    def __init__(self,
-                 frequencies: typing.List[FrequencyBand],
-                 channels: typing.List[str],
-                 sample_frequency: int):
+    def __init__(self, frequencies: typing.List[FrequencyBand], converter: MNEDataFrameConverter):
         self.bands = frequencies
-        self.channels = channels
-        self.sample_frequency = sample_frequency
+        self.converter = converter
 
     def apply(self, data: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
         """
@@ -50,7 +47,7 @@ class EEGBandpassFilterStep(PreProcessStep):
         :param dataframe: the DataFrame to filter.
         :return: the filtered DataFrame.
         """
-        mne_data = self._convert_dataframe_to_mne(dataframe)
+        mne_data = self.converter.convert(dataframe)
         frequencies_map: RawFrequencyDataMap = {}
 
         for frequency in self.bands:
@@ -65,18 +62,7 @@ class EEGBandpassFilterStep(PreProcessStep):
                 )
             frequencies_map[frequency.label] = filtered_data
 
-        return self._map_channels(frequencies_map, self.channels)
-
-    def _convert_dataframe_to_mne(self, dataframe: pd.DataFrame) -> mne.io.RawArray:
-        """
-        Helper method which converts the given dataframe into an MNE format array.
-
-        :param dataframe: the dataframe to convert.
-        :return: an MNE format array of data.
-        """
-        transposed_dataframe = dataframe.transpose(copy=True)
-        data_info = mne.create_info(self.channels, self.sample_frequency, ch_types='eeg')
-        return mne.io.RawArray(transposed_dataframe.to_numpy(), data_info)
+        return self._map_channels(frequencies_map, self.converter.channels)
 
     @staticmethod
     def _map_channels(frequencies_map: RawFrequencyDataMap, channels: typing.List[str]) -> pd.DataFrame:
