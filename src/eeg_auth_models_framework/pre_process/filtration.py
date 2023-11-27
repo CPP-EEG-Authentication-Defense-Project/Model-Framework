@@ -29,9 +29,7 @@ class EEGBandpassFilterStep(PreProcessStep):
     def __init__(self,
                  frequencies: typing.List[FrequencyBand],
                  channels: typing.List[str],
-                 sample_frequency: int,
-                 use_original_data=False):
-        super().__init__(use_original_data)
+                 sample_frequency: int):
         self.bands = frequencies
         self.channels = channels
         self.sample_frequency = sample_frequency
