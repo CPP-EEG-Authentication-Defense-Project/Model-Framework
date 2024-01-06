@@ -145,7 +145,7 @@ class DataProcessor:
         series_data = features.to_numpy()
         return FeatureMetaData(
             std_dev=np.std(series_data),
-            mean_abs_dev=stats.median(series_data),
+            mean_abs_dev=stats.median_abs_deviation(series_data),
             mean=np.mean(series_data),
             median=np.median(series_data),
             min=np.min(series_data),
