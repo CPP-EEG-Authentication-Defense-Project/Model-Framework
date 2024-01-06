@@ -2,13 +2,14 @@ import typing
 import pandas as pd
 
 from .base import PreProcessStep
+from ..utils import pipeline
 
 
-class PreProcessingPipeline(list[PreProcessStep]):
+class PreProcessingPipeline(pipeline.DataPipeline[PreProcessStep, pd.DataFrame, typing.List[pd.DataFrame]]):
     """
     Specialized list which manages applying pre-processing steps to a DataFrame.
     """
-    def pre_process(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
+    def run(self, data: pd.DataFrame) -> typing.List[pd.DataFrame]:
         """
         Executes pre-processing steps on the given DataFrame, returning a list of DataFrames generated from
         processing.

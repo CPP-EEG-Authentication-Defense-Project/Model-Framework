@@ -161,7 +161,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         pre_process_results = []
 
         for frame in dataframes:
-            pre_process_results.append(self.pre_process_steps.pre_process(frame))
+            pre_process_results.append(self.pre_process_steps.run(frame))
 
         return list(itertools.chain.from_iterable(pre_process_results))
 
@@ -173,4 +173,4 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :param dataframes: the list of DataFrames to extract feature data from.
         :return: a list of numpy arrays containing feature data.
         """
-        return [self.feature_extraction_steps.extract_features(frame) for frame in dataframes]
+        return [self.feature_extraction_steps.run(frame) for frame in dataframes]

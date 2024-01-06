@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 
 from .base import FeatureExtractor
+from ..utils import pipeline
 
 
-class FeatureExtractPipeline(list[FeatureExtractor]):
+class FeatureExtractPipeline(pipeline.DataPipeline[FeatureExtractor, pd.DataFrame, np.ndarray]):
     """
     Specialized list which manages applying feature extraction steps to a DataFrame.
     """
-    def extract_features(self, data: pd.DataFrame) -> np.ndarray:
+    def run(self, data: pd.DataFrame) -> np.ndarray:
         """
         Executes feature extraction steps on the given DataFrame, returning a numpy array of feature data.
 
