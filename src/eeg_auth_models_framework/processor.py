@@ -8,7 +8,7 @@ from scipy import stats
 from .pre_process import PreProcessingPipeline
 from .features import FeatureExtractPipeline
 from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData
-from .utils.logging_helpers import LOGGER_NAME
+from .utils.logging_helpers import LOGGER_NAME, PrefixedLoggingAdapter
 
 
 _logger = logging.getLogger(LOGGER_NAME)
@@ -25,6 +25,7 @@ class DataProcessor:
         self.pre_process_steps = pre_process
         self.feature_extraction_steps = feature_extraction
         self.normalization_steps = normalization
+        self.prefixed_logger = PrefixedLoggingAdapter('[Data Processor]', _logger)
 
     def process(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[np.ndarray]:
         """
@@ -61,6 +62,9 @@ class DataProcessor:
         :param dataframes: the list of DataFrames to apply pre-processing to.
         :return: the list of DataFrames that have been pre-processed.
         """
+        self.prefixed_logger.info(
+            f'Applying {len(self.pre_process_steps)} pre-processing steps to {len(dataframes)} frames'
+        )
         pre_process_results = []
 
         for frame in dataframes:
@@ -76,6 +80,9 @@ class DataProcessor:
         :param dataframes: the list of DataFrames to extract feature data from.
         :return: a list of numpy arrays containing feature data.
         """
+        self.prefixed_logger.info(
+            f'Applying {len(self.feature_extraction_steps)} feature extraction steps to {len(dataframes)} frames'
+        )
         return [self.feature_extraction_steps.run(frame) for frame in dataframes]
 
     def apply_normalization_steps(self, data: typing.List[np.ndarray]) -> typing.List[np.ndarray]:
@@ -88,6 +95,9 @@ class DataProcessor:
         """
         if not self.normalization_steps:
             raise ValueError('No normalization steps defined!')
+        self.prefixed_logger.info(
+            f'Applying {len(self.normalization_steps)} normalization steps to {len(data)} frames'
+        )
         return [self.normalization_steps.run(features) for features in data]
 
     @staticmethod
@@ -110,6 +120,9 @@ class DataProcessor:
         :param features: The feature data to use to generate the index.
         :return: The feature metadata index.
         """
+        self.prefixed_logger.info(
+            f'Generating metadata for {len(features.axes[0])}x{len(features.axes[1])} features matrix'
+        )
         meta_data_index = FeatureMetaDataIndex()
 
         for feature_idx in features.columns:
