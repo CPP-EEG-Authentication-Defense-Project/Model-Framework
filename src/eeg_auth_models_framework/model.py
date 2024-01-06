@@ -1,17 +1,13 @@
 import abc
 import typing
-import itertools
 import logging
-import pandas as pd
-import numpy as np
 import numpy.typing as np_types
 
-from .pre_process.pipeline import PreProcessingPipeline
-from .features.pipeline import FeatureExtractPipeline
 from .data.base import DatasetDownloader, DatasetReader
 from .training.base import DataLabeller, StratifiedSubjectData
 from .training.labelling import SubjectDataStratificationHandler
 from .training.results import TrainingResult
+from .processor import DataProcessor
 from .utils.logging_helpers import PrefixedLoggingAdapter, LOGGER_NAME
 
 _logger = logging.getLogger(LOGGER_NAME)
@@ -24,35 +20,14 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
     necessary to construct an EEG authentication model.
     """
     def __init__(self,
-                 pre_process: PreProcessingPipeline,
-                 feature_extraction: FeatureExtractPipeline):
-        self.pre_process_steps = pre_process
-        self.feature_extraction_steps = feature_extraction
-
-    @property
-    @abc.abstractmethod
-    def data_downloader(self) -> DatasetDownloader:
-        """
-        Property representing the training dataset downloader to be used for initiating model training.
-
-        :return: the downloader instance.
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def data_reader(self) -> DatasetReader:
-        """
-        Property representing the training dataset reader to be used to format training data.
-
-        :return: the reader instance.
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def labeller(self) -> DataLabeller:
-        pass
+                 data_downloader: DatasetDownloader,
+                 data_reader: DatasetReader,
+                 data_labeller: DataLabeller,
+                 data_processor: DataProcessor):
+        self.data_downloader = data_downloader
+        self.data_reader = data_reader
+        self.data_labeller = data_labeller
+        self.data_processor = data_processor
 
     @abc.abstractmethod
     def create_classifier(self) -> M:
@@ -132,14 +107,11 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         data_path = self.data_downloader.retrieve()
         training_logger.info('Formatting data')
         training_data = self.data_reader.format_data(data_path)
-        training_logger.info('Running pre-processing steps')
+        training_logger.info('Processing data')
         for subject, data in training_data.items():
-            training_data[subject] = self._apply_pre_process_steps(data)
-        training_logger.info('Running feature extraction steps')
-        for subject, data in training_data.items():
-            training_data[subject] = self._apply_feature_extraction_steps(data)
+            training_data[subject] = self.data_processor.process(data)
         training_logger.info('Labelling data')
-        labelled_data = self.labeller.label_data(training_data)
+        labelled_data = self.data_labeller.label_data(training_data)
         training_logger.info('Applying stratification')
         stratification_handler = SubjectDataStratificationHandler(k_folds)
         stratified_data = stratification_handler.get_k_folds_data(labelled_data)
@@ -147,28 +119,3 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         results = self.run_training(stratified_data)
         training_logger.info('Training complete')
         return results
-
-    def _apply_pre_process_steps(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
-        """
-        Helper method which applies pre-processing steps to the given list of DataFrames, returning a flat
-        list of DataFrames as its result.
-
-        :param dataframes: the list of DataFrames to apply pre-processing to.
-        :return: the list of DataFrames that have been pre-processed.
-        """
-        pre_process_results = []
-
-        for frame in dataframes:
-            pre_process_results.append(self.pre_process_steps.run(frame))
-
-        return list(itertools.chain.from_iterable(pre_process_results))
-
-    def _apply_feature_extraction_steps(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[np.ndarray]:
-        """
-        Helper method which applies feature extraction steps to the given list of DataFrames, returning a flat
-        list of numpy arrays as its result.
-
-        :param dataframes: the list of DataFrames to extract feature data from.
-        :return: a list of numpy arrays containing feature data.
-        """
-        return [self.feature_extraction_steps.run(frame) for frame in dataframes]
