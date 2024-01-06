@@ -1,6 +1,9 @@
 import logging
 
 
+LOGGER_NAME = 'eeg-auth-models:model'
+
+
 class PrefixedLoggingAdapter(logging.LoggerAdapter):
     """
     Simple logger adapter which allows for prefixing all log messages with static text.

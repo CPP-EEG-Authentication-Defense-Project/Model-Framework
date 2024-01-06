@@ -12,10 +12,8 @@ from .data.base import DatasetDownloader, DatasetReader
 from .training.base import DataLabeller, StratifiedSubjectData
 from .training.labelling import SubjectDataStratificationHandler
 from .training.results import TrainingResult
-from .utils.logging_helpers import PrefixedLoggingAdapter
+from .utils.logging_helpers import PrefixedLoggingAdapter, LOGGER_NAME
 
-
-LOGGER_NAME = 'eeg-auth-models:model'
 _logger = logging.getLogger(LOGGER_NAME)
 M = typing.TypeVar('M')
 
