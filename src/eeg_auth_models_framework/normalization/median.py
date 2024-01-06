@@ -9,11 +9,11 @@ class MedianNormalizationStep(base.NormalizationStep):
     biometric feature normalization techniques (DOI: 10.1109/TIFS.2019.2904844).
 
     Essentially, this normalization step subtracts the median from the given data and then divides the result by the
-    mean absolute deviation.
+    median absolute deviation.
     """
     def normalize(self, data: np.ndarray) -> np.ndarray:
         median_data = self.metadata.get_metadata_vector('median')
         normalized_data = data - median_data
-        median_data = self.metadata.get_metadata_vector('mean_abs_dev')
+        median_data = self.metadata.get_metadata_vector('median_abs_dev')
         normalized_data = normalized_data / median_data
         return normalized_data

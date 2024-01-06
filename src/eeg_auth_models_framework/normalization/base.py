@@ -12,14 +12,14 @@ class FeatureMetaData:
     such as quantization.
     """
     std_dev: float
-    mean_abs_dev: float
+    median_abs_dev: float
     mean: float
     median: float
     min: float
     max: float
 
 
-AttributeOption = typing.Literal['std_dev', 'mean_abs_dev', 'mean', 'median', 'min', 'max']
+AttributeOption = typing.Literal['std_dev', 'median_abs_dev', 'mean', 'median', 'min', 'max']
 
 
 class FeatureMetaDataIndex(list[FeatureMetaData]):
