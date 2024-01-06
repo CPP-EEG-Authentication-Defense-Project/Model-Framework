@@ -4,9 +4,10 @@ import itertools
 import pandas as pd
 import numpy as np
 
+from scipy import stats
 from .pre_process import PreProcessingPipeline
 from .features import FeatureExtractPipeline
-from .normalization import NormalizationPipeline
+from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData
 from .utils.logging_helpers import LOGGER_NAME
 
 
@@ -38,6 +39,19 @@ class DataProcessor:
         if self.normalization_steps:
             feature_data = self.apply_normalization_steps(feature_data)
         return feature_data
+
+    def extract_metadata(self, dataframes: typing.List[pd.DataFrame]) -> FeatureMetaDataIndex:
+        """
+        Processes the given Dataframes (without any normalization) and extracts metadata from the generated series
+        of feature vectors.
+
+        :param dataframes: The raw Dataframes to be processed.
+        :return: The metadata extracted.
+        """
+        pre_processed_data = self.apply_pre_process_steps(dataframes)
+        feature_data = self.apply_feature_extraction_steps(pre_processed_data)
+        features_dataframe = self._convert_features_to_dataframe(feature_data)
+        return self._get_metadata_index(features_dataframe)
 
     def apply_pre_process_steps(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
         """
@@ -75,3 +89,52 @@ class DataProcessor:
         if not self.normalization_steps:
             raise ValueError('No normalization steps defined!')
         return [self.normalization_steps.run(features) for features in data]
+
+    @staticmethod
+    def _convert_features_to_dataframe(data: typing.List[np.ndarray]) -> pd.DataFrame:
+        """
+        Simple utility method wrapping the conversion of the given list of feature vectors to a pandas DataFrame.
+
+        :param data: The feature vectors to convert to a Dataframe.
+        :return: The generated Dataframe.
+        """
+        return pd.DataFrame(
+            np.vstack(data)
+        )
+
+    def _get_metadata_index(self, features: pd.DataFrame) -> FeatureMetaDataIndex:
+        """
+        Helper method which generates a feature metadata index from the given feature data,
+        transformed into a Dataframe.
+
+        :param features: The feature data to use to generate the index.
+        :return: The feature metadata index.
+        """
+        meta_data_index = FeatureMetaDataIndex()
+
+        for feature_idx in features.columns:
+            meta_data_index.append(
+                self._get_metadata_from_series(
+                    features[feature_idx]
+                )
+            )
+
+        return meta_data_index
+
+    @staticmethod
+    def _get_metadata_from_series(features: pd.Series) -> FeatureMetaData:
+        """
+        Helper method which generates a feature metadata object from the given series data.
+
+        :param features: The feature series data to use to generate the metadata object.
+        :return: The metadata object.
+        """
+        series_data = features.to_numpy()
+        return FeatureMetaData(
+            std_dev=np.std(series_data),
+            mean_abs_dev=stats.median(series_data),
+            mean=np.mean(series_data),
+            median=np.median(series_data),
+            min=np.min(series_data),
+            max=np.max(series_data)
+        )
