@@ -14,6 +14,6 @@ class MedianNormalizationStep(base.NormalizationStep):
     def normalize(self, data: np.ndarray) -> np.ndarray:
         median_data = self.metadata.get_metadata_vector('median')
         normalized_data = data - median_data
-        median_data = self.metadata.get_metadata_vector('mean_abs_dev')
+        median_data = self.metadata.get_metadata_vector('median_abs_dev')
         normalized_data = normalized_data / median_data
         return normalized_data
