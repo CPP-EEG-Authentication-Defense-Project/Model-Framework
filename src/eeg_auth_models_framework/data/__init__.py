@@ -1,3 +1,2 @@
 from .base import DatasetDownloader, DatasetReader
-from .auditory import AuditoryDataDownloader
-from .readers import AuditoryDataReader
+from .auditory import AuditoryDataDownloader, AuditoryDataReader
