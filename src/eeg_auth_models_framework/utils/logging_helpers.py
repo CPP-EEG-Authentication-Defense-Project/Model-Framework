@@ -1,7 +1,7 @@
 import logging
 
 
-LOGGER_NAME = 'eeg-auth-models:model'
+LOGGER_NAME = 'eeg-auth-model-framework'
 
 
 class PrefixedLoggingAdapter(logging.LoggerAdapter):

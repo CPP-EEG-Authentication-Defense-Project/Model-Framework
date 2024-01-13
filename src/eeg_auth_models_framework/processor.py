@@ -24,7 +24,7 @@ class DataProcessor:
                  normalization: NormalizationPipeline = None):
         self.pre_process_steps = pre_process
         self.feature_extraction_steps = feature_extraction
-        self.normalization_steps = normalization
+        self.normalization_steps = normalization    # TODO: investigate potential reduction step prior to normalization
         self.prefixed_logger = PrefixedLoggingAdapter('[Data Processor]', _logger)
 
     def process(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[np.ndarray]:
