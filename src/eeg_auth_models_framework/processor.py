@@ -8,6 +8,7 @@ from scipy import stats
 from .pre_process import PreProcessingPipeline
 from .features import FeatureExtractPipeline
 from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData
+from .reduction import FeatureReduction
 from .utils.logging_helpers import LOGGER_NAME, PrefixedLoggingAdapter
 
 
@@ -21,10 +22,12 @@ class DataProcessor:
     def __init__(self,
                  pre_process: PreProcessingPipeline,
                  feature_extraction: FeatureExtractPipeline,
-                 normalization: NormalizationPipeline = None):
+                 normalization: NormalizationPipeline = None,
+                 reducer: FeatureReduction = None):
         self.pre_process_steps = pre_process
         self.feature_extraction_steps = feature_extraction
-        self.normalization_steps = normalization    # TODO: investigate potential reduction step prior to normalization
+        self.normalization_steps = normalization
+        self.reducer = reducer
         self.prefixed_logger = PrefixedLoggingAdapter('[Data Processor]', _logger)
 
     def process(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[np.ndarray]:
@@ -39,12 +42,15 @@ class DataProcessor:
         feature_data = self.apply_feature_extraction_steps(pre_processed_data)
         if self.normalization_steps:
             feature_data = self.apply_normalization_steps(feature_data)
+        if self.reducer:
+            # Wrap the reduced data in a list, so that the return type is uniform.
+            feature_data = [self.apply_reduction(feature_data)]
         return feature_data
 
     def extract_metadata(self, dataframes: typing.List[pd.DataFrame]) -> FeatureMetaDataIndex:
         """
-        Processes the given Dataframes (without any normalization) and extracts metadata from the generated series
-        of feature vectors.
+        Processes the given Dataframes (without any normalization or reduction)
+        and extracts metadata from the generated series of feature vectors.
 
         :param dataframes: The raw Dataframes to be processed.
         :return: The metadata extracted.
@@ -99,6 +105,19 @@ class DataProcessor:
             f'Applying {len(self.normalization_steps)} normalization steps to {len(data)} frames'
         )
         return [self.normalization_steps.run(features) for features in data]
+
+    def apply_reduction(self, data: typing.List[np.ndarray]) -> np.ndarray:
+        """
+        Applies feature reduction to the given list of feature vectors, reducing the vectors down to a single
+        vector.
+
+        :param data: The feature vector data to reduce.
+        :return: The reduced data.
+        """
+        if not self.reducer:
+            raise ValueError('No reducer defined!')
+        self.prefixed_logger.info(f'Applying feature reduction to {len(data)} frames')
+        return self.reducer.reduce(data)
 
     @staticmethod
     def _convert_features_to_dataframe(data: typing.List[np.ndarray]) -> pd.DataFrame:

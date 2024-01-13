@@ -6,7 +6,7 @@ import numpy as np
 class FeatureReduction(abc.ABC):
     """
     Base interface for a feature reduction processor. The purpose of such objects is to take in a series of feature
-    data vectors and reduce them into a single feature vector.
+    data vectors and reduce them into a some smaller set of data.
     """
     @abc.abstractmethod
     def reduce(self, data: typing.List[np.ndarray]) -> np.ndarray:
