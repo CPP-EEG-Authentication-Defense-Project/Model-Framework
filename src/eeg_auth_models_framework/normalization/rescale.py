@@ -8,8 +8,10 @@ class RescaleNormalizationStep(base.NormalizationStep):
     Normalization step which rescales the given feature vector to a new range. This process is based on the rescale
     algorithm used by MatLab (see: https://www.mathworks.com/help/matlab/ref/rescale.html).
     """
-    def __init__(self, metadata: base.FeatureMetaDataIndex, upper=0, lower=255):
-        super().__init__(metadata)
+    metadata_required = False
+
+    def __init__(self, upper=0, lower=255):
+        super().__init__()
         self.upper = upper
         self.lower = lower
 

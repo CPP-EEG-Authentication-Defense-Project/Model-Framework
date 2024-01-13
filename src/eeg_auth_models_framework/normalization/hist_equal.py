@@ -12,6 +12,8 @@ class HistogramEqualizationStep(base.NormalizationStep):
     NOTE: this step assumes that the data to be normalized has already been rescaled to the configured lower and upper
           limit.
     """
+    metadata_required = False
+
     def __init__(self, metadata: base.FeatureMetaDataIndex, lower=0, upper=255):
         super().__init__(metadata)
         self.lower = lower

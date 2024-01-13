@@ -11,6 +11,8 @@ class MedianNormalizationStep(base.NormalizationStep):
     Essentially, this normalization step subtracts the median from the given data and then divides the result by the
     median absolute deviation.
     """
+    metadata_required = True
+
     def normalize(self, data: np.ndarray) -> np.ndarray:
         median_data = self.metadata.get_metadata_vector('median')
         normalized_data = data - median_data
