@@ -56,3 +56,10 @@ for each user trained against.
 
 The `utils` sub-package contains common utility modules used throughout the framework. For example, logging 
 abstractions and the standard `DataPipeline` interface used by the other sub-packages.
+
+## References
+
+This framework leverages the following resources:
+
+1. Abo Alzahab, N., Di Iorio, A., Apollonio, L., Alshalak, M., Gravina, A., Antognoli, L., Baldi, M., Scalise, L., & Alchalabi, B. (2021). Auditory evoked potential EEG-Biometric dataset (version 1.0.0). PhysioNet. https://doi.org/10.13026/ps31-fc50.
+2. Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation \[Online\]. 101 (23), pp. e215–e220.
