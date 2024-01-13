@@ -75,10 +75,15 @@ python-dateutil==2.8.2
     #   pandas
 pytz==2023.3.post1
     # via pandas
+pyyaml==6.0.1
+    # via responses
 requests==2.31.0
     # via
     #   eeg_auth_models_framework (pyproject.toml)
     #   pooch
+    #   responses
+responses==0.24.1
+    # via eeg_auth_models_framework (pyproject.toml)
 scikit-learn==1.3.2
     # via eeg_auth_models_framework (pyproject.toml)
 scipy==1.11.4
@@ -102,4 +107,6 @@ tqdm==4.66.1
 tzdata==2023.4
     # via pandas
 urllib3==2.1.0
-    # via requests
+    # via
+    #   requests
+    #   responses

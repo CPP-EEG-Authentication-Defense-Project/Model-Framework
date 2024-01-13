@@ -31,4 +31,5 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "invoke~=2.2.0",
+    "responses~=0.24.1",
 ]
