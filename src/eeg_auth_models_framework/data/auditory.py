@@ -14,6 +14,11 @@ _logger = logging.getLogger('eeg-auth-defense-models')
 
 
 class AuditoryDataDownloader(DatasetDownloader):
+    """
+    Downloader which retrieves data files for experiment #5 of the auditory EEG dataset in from
+    https://doi.org/10.13026/ps31-fc50. This experiment consisted of EEG recordings for subjects listening
+    to a song in their native language for 3 minutes.
+    """
     dataset_url = 'https://physionet.org/files/auditory-eeg/1.0.0/Segmented_Data/'
     experiment_1_data_pattern = re.compile(r's\d{2}_ex05\.csv')
     label = 'auditory'
