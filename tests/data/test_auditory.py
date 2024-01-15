@@ -1,10 +1,14 @@
+import csv
 import unittest
 import urllib.parse
+import random
 import responses
 import tempfile
 import pathlib
+import pandas as pd
 
 from eeg_auth_models_framework import data
+from eeg_auth_models_framework.data import AuditoryDataReader
 
 
 class AuditoryDataDownloaderUnitTest(unittest.TestCase):
@@ -70,4 +74,48 @@ class AuditoryDataDownloaderUnitTest(unittest.TestCase):
             body=self._fake_file_content_b,
             status=200,
             content_type='text/plain'
+        )
+
+
+class AuditoryDataReaderUnitTest(unittest.TestCase):
+    _fake_subject = 's01'
+    _fake_file_name = f'{_fake_subject}_ex05.csv'
+    _index_field = ''
+    _t7_field = 'T7'
+    _f8_field = 'F8'
+    _cz_field = 'Cz'
+    _p4_field = 'P4'
+    _fake_field_names = [_index_field, _t7_field, _f8_field, _cz_field, _p4_field]
+
+    def setUp(self):
+        self.fake_data_directory = tempfile.TemporaryDirectory()
+        fake_data_path = pathlib.Path(self.fake_data_directory.name)
+        with open(fake_data_path / self._fake_file_name, 'w') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self._fake_field_names)
+            writer.writeheader()
+            writer.writerow({
+                self._index_field: random.randint(1, 10000),
+                self._t7_field: random.uniform(1, 100),
+                self._f8_field: random.uniform(1, 100),
+                self._cz_field: random.uniform(1, 100),
+                self._p4_field: random.uniform(1, 100)
+            })
+
+    def tearDown(self):
+        self.fake_data_directory.cleanup()
+
+    def test_read_and_format_data(self):
+        reader = AuditoryDataReader()
+        expected_key = self._fake_subject.upper()
+
+        result = reader.format_data(pathlib.Path(self.fake_data_directory.name))
+
+        self.assertIsInstance(result, dict)
+        self.assertIn(expected_key, result)
+        self.assertIsInstance(result[expected_key], list)
+        self.assertEqual(len(result[expected_key]), 1)
+        self.assertIsInstance(result[expected_key][0], pd.DataFrame)
+        self.assertListEqual(
+            result[expected_key][0].columns.values.tolist(),
+            [self._t7_field, self._f8_field, self._cz_field, self._p4_field]
         )
