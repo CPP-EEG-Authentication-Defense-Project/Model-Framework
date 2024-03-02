@@ -43,8 +43,7 @@ class DataProcessor:
         if self.normalization_steps:
             feature_data = self.apply_normalization_steps(feature_data)
         if self.reducer:
-            # Wrap the reduced data in a list, so that the return type is uniform.
-            feature_data = [self.apply_reduction(feature_data)]
+            feature_data = self.apply_reduction(feature_data)
         return feature_data
 
     def extract_metadata(self, dataframes: typing.List[pd.DataFrame]) -> FeatureMetaDataIndex:
@@ -106,7 +105,7 @@ class DataProcessor:
         )
         return [self.normalization_steps.run(features) for features in data]
 
-    def apply_reduction(self, data: typing.List[np.ndarray]) -> np.ndarray:
+    def apply_reduction(self, data: typing.List[np.ndarray]) -> typing.List[np.ndarray]:
         """
         Applies feature reduction to the given list of feature vectors, reducing the vectors down to a single
         vector.
