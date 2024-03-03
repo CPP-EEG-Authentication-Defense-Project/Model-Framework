@@ -24,8 +24,10 @@ class HistogramEqualizationStep(base.NormalizationStep):
         cumulative_histogram = self._calculate_equalized_cumulative_histogram(data)
         normalized_output = numpy.zeros(data_size)
         for i in range(data_size):
-            if data[i] in range(self.lower, self.upper):
-                normalized_output[i] = cumulative_histogram[data[i]]
+            # Cannot use floating point values, so we need to normalize to an integer
+            value = int(data[i])
+            if value in range(self.lower, self.upper):
+                normalized_output[i] = cumulative_histogram[value]
         return normalized_output
 
     def _calculate_equalized_cumulative_histogram(self, data: np.ndarray) -> np.ndarray:
