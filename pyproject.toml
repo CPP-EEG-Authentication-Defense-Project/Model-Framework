@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eeg_auth_models_framework"
-version = "0.1.21"
+version = "0.1.22"
 authors = [
     { name="Cristopher Hernandez", email="22552070+CristopherH95@users.noreply.github.com" },
 ]
