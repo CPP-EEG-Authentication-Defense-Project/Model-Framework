@@ -1,8 +1,37 @@
 import dataclasses
 import typing
+import statistics
 
 
 M = typing.TypeVar('M')
+
+
+@dataclasses.dataclass
+class TrainingStatistics:
+    """
+    Wrapper for data on training results.
+    """
+    train_start: float
+    train_end: float
+    scores: typing.List[float]
+
+    @property
+    def training_duration(self) -> float:
+        """
+        The total duration of the training in seconds.
+
+        :return: A duration in seconds.
+        """
+        return self.train_end - self.train_start
+
+    @property
+    def average_score(self):
+        """
+        The average score from the training results.
+
+        :return: A score average.
+        """
+        return statistics.mean(self.scores)
 
 
 @dataclasses.dataclass
@@ -11,7 +40,7 @@ class TrainingResult(typing.Generic[M]):
     Simple wrapper for maps of trained models and scores.
     """
     models: typing.Dict[str, M]
-    scores: typing.Dict[str, typing.List[float]]
+    training_statistics: typing.Dict[str, TrainingStatistics]
 
     def get_model(self, key: str) -> typing.Optional[M]:
         """
@@ -29,16 +58,7 @@ class TrainingResult(typing.Generic[M]):
         :param key: the key to use to search for scores.
         :return: the average score for the given key, or None if there is no average.
         """
-        scores_found = self.get_scores(key)
-        if not scores_found:
+        statistical_data = self.training_statistics.get(key)
+        if not statistical_data:
             return None
-        return sum(scores_found) / len(scores_found)
-
-    def get_scores(self, key: str) -> typing.Optional[typing.List[float]]:
-        """
-        Retrieves a list of scores from the result.
-
-        :param key: the key to use to search for scores.
-        :return: the scores for the given key, or None if they do not exist.
-        """
-        return self.scores.get(key)
+        return statistical_data.average_score
