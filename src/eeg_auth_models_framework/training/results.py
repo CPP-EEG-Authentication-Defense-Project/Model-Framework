@@ -25,7 +25,7 @@ class TrainingStatistics:
         return self.train_end - self.train_start
 
     @property
-    def average_score(self):
+    def average_score(self) -> float:
         """
         The average score from the training results.
 
@@ -62,3 +62,16 @@ class TrainingResult(typing.Generic[M]):
         if not statistical_data:
             return None
         return statistical_data.average_score
+
+    @property
+    def global_average(self) -> float:
+        """
+        Retrieves a "global" average, which is an average of all the average training scores in the training results
+        set.
+
+        :return: The global average value.
+        """
+        averages = []
+        for statistical_data in self.training_statistics.values():
+            averages.append(statistical_data.average_score)
+        return statistics.mean(averages)
