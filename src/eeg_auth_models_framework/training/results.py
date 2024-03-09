@@ -64,7 +64,7 @@ class TrainingResult(typing.Generic[M]):
         return statistical_data.average_score
 
     @property
-    def global_average(self) -> float:
+    def global_average_score(self) -> float:
         """
         Retrieves a "global" average, which is an average of all the average training scores in the training results
         set.
@@ -75,6 +75,16 @@ class TrainingResult(typing.Generic[M]):
         for statistical_data in self.training_statistics.values():
             averages.append(statistical_data.average_score)
         return statistics.mean(averages)
+
+    @property
+    def global_average_time(self) -> float:
+        """
+        Retrieves the average training time for a model, in seconds.
+
+        :return: The average training time.
+        """
+        training_times = [stats.training_duration for stats in self.training_statistics.values()]
+        return statistics.mean(training_times)
 
     def iter_subject_average_scores(self) -> typing.Iterator[typing.Tuple[str, float]]:
         """
