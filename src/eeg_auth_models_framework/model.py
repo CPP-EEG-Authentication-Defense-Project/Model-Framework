@@ -1,12 +1,13 @@
 import abc
 import typing
 import logging
+import time
 import numpy.typing as np_types
 
 from .data.base import DatasetDownloader, DatasetReader
 from .training.base import DataLabeller, StratifiedSubjectData
 from .training.labelling import SubjectDataStratificationHandler
-from .training.results import TrainingResult
+from .training.results import TrainingResult, TrainingStatistics
 from .processor import DataProcessor
 from .utils.logging_helpers import PrefixedLoggingAdapter, LOGGER_NAME
 
@@ -72,27 +73,29 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
             subject: self.create_classifier()
             for subject in labelled_data
         }
-        training_scores: typing.Dict[str, typing.List[float]] = {
-            subject: []
+        training_stats: typing.Dict[str, TrainingStatistics] = {
+            subject: TrainingStatistics(train_start=0, train_end=0, scores=[])
             for subject in labelled_data
         }
         for subject in labelled_data:
             subject_logger = PrefixedLoggingAdapter(f'[subject: {subject}]', _logger)
             subject_logger.info(f'[Subject: {subject}] Training model...')
+            training_stats[subject].train_start = time.time()
             stratified_data = labelled_data[subject]
             model = subject_models[subject]
             iteration_count = 1
             for segment in stratified_data:
                 subject_logger.info(f'[Subject: {subject}] Running training fold {iteration_count}')
                 self.train_classifier(model, segment.train.x, segment.train.y)
-                training_scores[subject].append(
+                training_stats[subject].scores.append(
                     self.score_classifier(model, segment.test.x, segment.test.y)
                 )
                 iteration_count += 1
+            training_stats[subject].train_end = time.time()
             subject_logger.info(f'[Subject: {subject}] Training complete')
         return TrainingResult(
             subject_models,
-            training_scores
+            training_stats
         )
 
     def train(self, k_folds=10) -> TrainingResult[M]:
