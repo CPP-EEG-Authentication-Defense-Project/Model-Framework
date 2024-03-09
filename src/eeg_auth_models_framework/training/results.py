@@ -75,3 +75,12 @@ class TrainingResult(typing.Generic[M]):
         for statistical_data in self.training_statistics.values():
             averages.append(statistical_data.average_score)
         return statistics.mean(averages)
+
+    def iter_subject_average_scores(self) -> typing.Iterator[typing.Tuple[str, float]]:
+        """
+        Utility method for iterating over all the average scores associated with each subject in the results set.
+
+        :return: The iterator over the average scores associated with each subject.
+        """
+        for subject, statistical_data in self.training_statistics.items():
+            yield subject, statistical_data.average_score
