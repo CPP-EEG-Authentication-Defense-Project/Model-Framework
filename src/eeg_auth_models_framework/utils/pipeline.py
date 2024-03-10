@@ -7,7 +7,7 @@ Input = typing.TypeVar('Input')
 Output = typing.TypeVar('Output')
 
 
-class DataPipeline(list[Step], abc.ABC, typing.Generic[Step, Input, Output]):
+class DataPipeline(typing.List[Step], abc.ABC, typing.Generic[Step, Input, Output]):
     """
     Abstract base class defining the interface for creating a data pipeline class.
     A data pipeline is essentially a list of steps that can be executed on some
