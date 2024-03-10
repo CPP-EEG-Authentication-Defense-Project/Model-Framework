@@ -22,7 +22,7 @@ class FeatureMetaData:
 AttributeOption = typing.Literal['std_dev', 'median_abs_dev', 'mean', 'median', 'min', 'max']
 
 
-class FeatureMetaDataIndex(list[FeatureMetaData]):
+class FeatureMetaDataIndex(typing.List[FeatureMetaData]):
     """
     Specialized list type used to create an index of feature vector metadata.
     """
