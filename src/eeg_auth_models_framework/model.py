@@ -82,6 +82,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         stratification_handler = SubjectDataStratificationHandler(k_folds)
         for subject in labelled_data:
             subject_logger = PrefixedLoggingAdapter(f'[subject: {subject}]', _logger)
+            subject_logger.info('Starting training process')
             subject_logger.info('Generating stratified dataset')
             stratified_data = stratification_handler.get_k_folds_data(labelled_data, subject)
             model = subject_models[subject]
