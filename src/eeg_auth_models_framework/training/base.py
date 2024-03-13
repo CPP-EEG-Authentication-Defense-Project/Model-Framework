@@ -35,9 +35,6 @@ class StratifiedSubjectData:
     test: StratifiedPair
 
 
-StratifiedDataMap = typing.Dict[str, typing.List[StratifiedSubjectData]]
-
-
 class DataLabeller(abc.ABC, typing.Generic[D]):
     """
     Base class defining the common interface for data labeller implementations.

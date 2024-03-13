@@ -2,7 +2,7 @@ import typing
 import numpy as np
 import numpy.typing as np_types
 from sklearn.model_selection import StratifiedKFold
-from .base import DataLabeller, LabelledSubjectData, StratifiedDataMap, StratifiedSubjectData, StratifiedPair
+from .base import DataLabeller, LabelledSubjectData, StratifiedSubjectData, StratifiedPair
 
 
 D = typing.TypeVar('D')
@@ -53,23 +53,21 @@ class SubjectDataStratificationHandler(typing.Generic[D]):
         self.splitter = StratifiedKFold(folds)
 
     def get_k_folds_data(self,
-                         subject_data: typing.Dict[str, LabelledSubjectData[D]]) -> StratifiedDataMap:
+                         subject_data: typing.Dict[str, LabelledSubjectData[D]],
+                         target_subject: str) -> typing.List[StratifiedSubjectData]:
         """
-        Generates a new data map which contains stratified k-folds format data, using the original labelled data
-        provided.
+        Generates a list of stratified k-fold data for the given subject, based on the labelled subject data map.
 
         :param subject_data: the labelled subject data map to use to produce the k-folds.
-        :return: a new data map containing each subject's k-folds data.
+        :param target_subject: the subject to use to generate the stratified k-folds data.
+        :return: a list containing the subject's k-folds data.
         """
-        data_map = {}
+        labelled_data = subject_data[target_subject]
+        x_data = np.array(labelled_data.data)
+        y_data = np.array(labelled_data.labels)
+        k_folds_data = self._generate_subject_splits(x_data, y_data)
 
-        for key in subject_data:
-            labelled_data = subject_data[key]
-            x_data = np.array(labelled_data.data)
-            y_data = np.array(labelled_data.labels)
-            data_map[key] = self._generate_subject_splits(x_data, y_data)
-
-        return data_map
+        return k_folds_data
 
     def _generate_subject_splits(self,
                                  x_data: np_types.ArrayLike,
