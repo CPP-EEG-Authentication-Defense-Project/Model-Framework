@@ -40,7 +40,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         """
         pass
 
-    @abc.abstractmethod
+    # noinspection PyMethodMayBeStatic
     def train_classifier(self, model: M, x_data: np_types.ArrayLike, y_data: np_types.ArrayLike):
         """
         Executes the training routine on a given model with the given data.
@@ -49,9 +49,9 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :param x_data: the X input data.
         :param y_data: the Y expected output data.
         """
-        pass
+        model.fit(x_data, y_data)
 
-    @abc.abstractmethod
+    # noinspection PyMethodMayBeStatic
     def score_classifier(self, model: M, x_data: np_types.ArrayLike, y_data: np_types.ArrayLike) -> float:
         """
         Executes the scoring routine on a given model with the given data.
@@ -61,7 +61,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :param y_data: the Y expected output data.
         :returns: the overall score.
         """
-        pass
+        return model.score(x_data, y_data)
 
     def run_training(self, labelled_data: typing.Dict[str, LabelledSubjectData[D]], k_folds: int) -> TrainingResult[M]:
         """
@@ -92,6 +92,9 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
             for segment in stratified_data:
                 subject_logger.info(f'Running training fold {iteration_count}')
                 self.train_classifier(model, segment.train.x, segment.train.y)
+                # TODO: add hook for calibration, to get estimate data that can be used for ROC curve
+                #       https://scikit-learn.org/stable/modules/generated/sklearn.calibration.CalibratedClassifierCV.html
+                #       https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
                 training_stats[subject].scores.append(
                     self.score_classifier(model, segment.test.x, segment.test.y)
                 )
