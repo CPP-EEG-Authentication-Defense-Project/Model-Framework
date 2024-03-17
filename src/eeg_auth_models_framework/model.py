@@ -63,6 +63,12 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         """
         return model.score(x_data, y_data)
 
+    def update_scoring_statistics(self, model: M,
+                                  stats: TrainingStatistics,
+                                  x_data: np_types.ArrayLike,
+                                  y_data: np_types.ArrayLike):
+        pass    # TODO: run through updates to TrainingStatistics
+
     def run_training(self, labelled_data: typing.Dict[str, LabelledSubjectData[D]], k_folds: int) -> TrainingResult[M]:
         """
         Executes model training, returning the final model results.
@@ -76,7 +82,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
             for subject in labelled_data
         }
         training_stats: typing.Dict[str, TrainingStatistics] = {
-            subject: TrainingStatistics(train_start=0, train_end=0, scores=[])
+            subject: TrainingStatistics()
             for subject in labelled_data
         }
         stratification_handler = SubjectDataStratificationHandler(k_folds)

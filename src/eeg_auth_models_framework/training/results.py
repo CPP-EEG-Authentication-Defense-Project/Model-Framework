@@ -1,6 +1,7 @@
 import dataclasses
 import typing
 import statistics
+import numpy as np
 
 
 M = typing.TypeVar('M')
@@ -11,9 +12,12 @@ class TrainingStatistics:
     """
     Wrapper for data on training results.
     """
-    train_start: float
-    train_end: float
-    scores: typing.List[float]
+    train_start: float = 0
+    train_end: float = 0
+    false_positive_rate: float = 0
+    true_positive_rate: float = 0
+    positive_rate_thresholds: typing.Optional[np.ndarray] = None
+    scores: typing.List[float] = dataclasses.field(default_factory=list)
 
     @property
     def training_duration(self) -> float:
