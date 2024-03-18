@@ -4,9 +4,7 @@ import logging
 import time
 import numpy.typing as np_types
 
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_curve
+from sklearn.metrics import confusion_matrix
 
 from .data.base import DatasetDownloader, DatasetReader
 from .training.base import DataLabeller, LabelledSubjectData, TrainingDataPair
@@ -69,24 +67,20 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         """
         return model.score(x_data, y_data)
 
-    def get_model_roc_curve(self,
-                            model: M,
-                            validation_data: TrainingDataPair) -> typing.Tuple[float, float, np_types.ArrayLike]:
+    # noinspection PyMethodMayBeStatic
+    def get_auth_performance_data(self,
+                                  model: M,
+                                  validation_data: TrainingDataPair) -> typing.Tuple[float, float, float, float]:
         """
-        Generates a calibrated classifier instance and then uses it to evaluate the model and compute ROC curve
-        metrics (i.e., false positive rate, true positive rate, and thresholds).
+        Calculates authentication performance data for the given model. The performance data is:
+        true negative, false positive, false negative, and true positive.
 
-        :param model: The model to use for calibration and calculation of ROC curve metrics.
-        :param validation_data: The validation to use for the calibration/calculation.
-        :return: A tuple containing the false positive rate, true positive rate, and thresholds.
+        :param model: The model to use for calculation of authentication performance metrics.
+        :param validation_data: The validation to use for the calculation.
+        :return: A tuple containing the true negative, false positive, false negative, and true positive counts.
         """
-        calibrated_model = CalibratedClassifierCV(model, cv='prefit')
-        x_train, x_test, y_train, y_test = train_test_split(
-            validation_data.x, validation_data.y, random_state=self.random_state
-        )
-        calibrated_model.fit(x_train, y_train)
-        probabilities = calibrated_model.predict_proba(x_test)
-        return roc_curve(y_test, probabilities, pos_label=1)
+        predictions = model.predict(validation_data.x)
+        return confusion_matrix(validation_data.y, predictions).ravel()
 
     def train_on_subject_data(self,
                               model: M,
@@ -121,10 +115,11 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         training_stats.train_end = time.time()
         subject_logger.info('Training complete')
         subject_logger.info('Beginning model evaluation')
-        fpr, tpr, thresholds = self.get_model_roc_curve(model, training_data.validation_data)
-        training_stats.false_positive_rate = fpr
-        training_stats.true_positive_rate = tpr
-        training_stats.positive_rate_thresholds = thresholds
+        tn, fp, fn, tp = self.get_auth_performance_data(model, training_data.validation_data)
+        training_stats.true_negative_count = tn
+        training_stats.false_positive_count = fp
+        training_stats.false_negative_count = fn
+        training_stats.true_positive_count = tp
         subject_logger.info('Model evaluation complete')
         return training_stats
 

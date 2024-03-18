@@ -14,8 +14,10 @@ class TrainingStatistics:
     """
     train_start: float = 0
     train_end: float = 0
-    false_positive_rate: float = 0
-    true_positive_rate: float = 0
+    true_positive_count: int = 0
+    false_positive_count: int = 0
+    false_negative_count: int = 0
+    true_negative_count: int = 0
     positive_rate_thresholds: typing.Optional[np.ndarray] = None
     scores: typing.List[float] = dataclasses.field(default_factory=list)
 
@@ -36,6 +38,24 @@ class TrainingStatistics:
         :return: A score average.
         """
         return statistics.mean(self.scores)
+
+    @property
+    def false_accept_rate(self):
+        """
+        The false acceptance rate of the training results.
+
+        :return: The rate.
+        """
+        return self.false_positive_count / (self.false_positive_count + self.true_negative_count)
+
+    @property
+    def false_reject_rate(self):
+        """
+        The false rejection rate of the training results.
+
+        :return: The rate.
+        """
+        return self.false_negative_count / (self.false_negative_count + self.true_positive_count)
 
 
 @dataclasses.dataclass
