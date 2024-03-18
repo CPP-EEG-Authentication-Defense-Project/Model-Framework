@@ -72,7 +72,7 @@ class SubjectDataPreparer(typing.Generic[D]):
         x_data = np.array(labelled_data.data)
         y_data = np.array(labelled_data.labels)
         x_train, x_test, y_train, y_test = train_test_split(
-            x_data, y_data, test_size=self.validation_set_size, random_state=self.random_state
+            x_data, y_data, test_size=self.validation_set_size, random_state=self.random_state, shuffle=False
         )
         k_folds_data = self._generate_subject_splits(x_train, y_train)
 
