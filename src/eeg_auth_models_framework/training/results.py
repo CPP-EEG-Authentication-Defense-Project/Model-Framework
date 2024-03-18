@@ -40,7 +40,7 @@ class TrainingStatistics:
         return statistics.mean(self.scores)
 
     @property
-    def false_accept_rate(self):
+    def false_accept_rate(self) -> float:
         """
         The false acceptance rate of the training results.
 
@@ -49,7 +49,7 @@ class TrainingStatistics:
         return self.false_positive_count / (self.false_positive_count + self.true_negative_count)
 
     @property
-    def false_reject_rate(self):
+    def false_reject_rate(self) -> float:
         """
         The false rejection rate of the training results.
 
