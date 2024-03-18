@@ -85,7 +85,7 @@ class SubjectDataPreparer(typing.Generic[D]):
         )
 
     def _generate_subject_splits(self,
-                                 x_data: np_types.ArrayLike,
+                                 x_data: typing.List[np_types.ArrayLike],
                                  y_data: np_types.ArrayLike) -> typing.List[StratifiedSubjectData]:
         """
         Utility method which generates a list of stratified data for the given x-y combination.
