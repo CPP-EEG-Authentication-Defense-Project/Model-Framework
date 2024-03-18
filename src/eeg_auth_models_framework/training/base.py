@@ -18,7 +18,7 @@ class LabelledSubjectData(typing.Generic[D]):
 
 
 @dataclasses.dataclass
-class StratifiedPair:
+class TrainingDataPair:
     """
     Container for x-y related data generated from stratification.
     """
@@ -31,8 +31,17 @@ class StratifiedSubjectData:
     """
     Container for train and test data generated from stratification of subject data.
     """
-    train: StratifiedPair
-    test: StratifiedPair
+    train: TrainingDataPair
+    test: TrainingDataPair
+
+
+@dataclasses.dataclass
+class SubjectModelTrainingData:
+    """
+    Container for all data used for training/validation of a model for a subject.
+    """
+    stratified_training_data: typing.List[StratifiedSubjectData]
+    validation_data: TrainingDataPair
 
 
 class DataLabeller(abc.ABC, typing.Generic[D]):
