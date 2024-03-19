@@ -1,8 +1,8 @@
 import typing
 import numpy as np
 import numpy.typing as np_types
-from sklearn.model_selection import StratifiedKFold
-from .base import DataLabeller, LabelledSubjectData, StratifiedSubjectData, StratifiedPair
+from sklearn.model_selection import StratifiedKFold, train_test_split
+from .base import DataLabeller, LabelledSubjectData, StratifiedSubjectData, TrainingDataPair, SubjectModelTrainingData
 
 
 D = typing.TypeVar('D')
@@ -45,32 +45,47 @@ class SubjectDataLabeller(DataLabeller):
         return LabelledSubjectData(samples_list, labels_list)
 
 
-class SubjectDataStratificationHandler(typing.Generic[D]):
+class SubjectDataPreparer(typing.Generic[D]):
     """
-    Utility class which helps to produce stratified k-fold data.
+    Utility class which helps to produce training/test/validation data.
     """
-    def __init__(self, folds: int):
+    def __init__(self, folds: int, validation_set_size: float = 0.2, random_state: typing.Union[int, float] = 42):
+        if validation_set_size < 0 or validation_set_size > 1:
+            raise ValueError(f'Validation set size must be between 0 and 1 (got {validation_set_size})')
         self.splitter = StratifiedKFold(folds)
+        self.validation_set_size = validation_set_size
+        self.random_state = random_state
 
-    def get_k_folds_data(self,
-                         subject_data: typing.Dict[str, LabelledSubjectData[D]],
-                         target_subject: str) -> typing.List[StratifiedSubjectData]:
+    def get_data(self,
+                 subject_data: typing.Dict[str, LabelledSubjectData[D]],
+                 target_subject: str) -> SubjectModelTrainingData:
         """
-        Generates a list of stratified k-fold data for the given subject, based on the labelled subject data map.
+        Generates training/test/validation data to be used for training a specific subject model. The training/test
+        data will be split into stratified k-folds, while the validation data will be separated out from the training
+        and test data.
 
         :param subject_data: the labelled subject data map to use to produce the k-folds.
         :param target_subject: the subject to use to generate the stratified k-folds data.
-        :return: a list containing the subject's k-folds data.
+        :return: an object wrapping the training data that was assembled.
         """
         labelled_data = subject_data[target_subject]
         x_data = np.array(labelled_data.data)
         y_data = np.array(labelled_data.labels)
-        k_folds_data = self._generate_subject_splits(x_data, y_data)
+        x_train, x_test, y_train, y_test = train_test_split(
+            x_data, y_data, test_size=self.validation_set_size, random_state=self.random_state, shuffle=False
+        )
+        k_folds_data = self._generate_subject_splits(x_train, y_train)
 
-        return k_folds_data
+        return SubjectModelTrainingData(
+            stratified_training_data=k_folds_data,
+            validation_data=TrainingDataPair(
+                x=x_test,
+                y=y_test
+            )
+        )
 
     def _generate_subject_splits(self,
-                                 x_data: np_types.ArrayLike,
+                                 x_data: typing.List[np_types.ArrayLike],
                                  y_data: np_types.ArrayLike) -> typing.List[StratifiedSubjectData]:
         """
         Utility method which generates a list of stratified data for the given x-y combination.
@@ -82,13 +97,13 @@ class SubjectDataStratificationHandler(typing.Generic[D]):
         stratified_data = []
 
         for train, test in self.splitter.split(x_data, y_data):
-            train_pair = StratifiedPair(
-                x_data[train],
-                y_data[train]
+            train_pair = TrainingDataPair(
+                x=x_data[train],
+                y=y_data[train]
             )
-            test_pair = StratifiedPair(
-                x_data[test],
-                y_data[test]
+            test_pair = TrainingDataPair(
+                x=x_data[test],
+                y=y_data[test]
             )
             stratified_data.append(
                 StratifiedSubjectData(train_pair, test_pair)

@@ -11,9 +11,13 @@ class TrainingStatistics:
     """
     Wrapper for data on training results.
     """
-    train_start: float
-    train_end: float
-    scores: typing.List[float]
+    train_start: float = 0
+    train_end: float = 0
+    true_positive_count: int = 0
+    false_positive_count: int = 0
+    false_negative_count: int = 0
+    true_negative_count: int = 0
+    scores: typing.List[float] = dataclasses.field(default_factory=list)
 
     @property
     def training_duration(self) -> float:
@@ -32,6 +36,33 @@ class TrainingStatistics:
         :return: A score average.
         """
         return statistics.mean(self.scores)
+
+    @property
+    def false_accept_rate(self) -> float:
+        """
+        The false acceptance rate of the training results.
+
+        :return: The rate.
+        """
+        return self.false_positive_count / (self.false_positive_count + self.true_negative_count)
+
+    @property
+    def false_reject_rate(self) -> float:
+        """
+        The false rejection rate of the training results.
+
+        :return: The rate.
+        """
+        return self.false_negative_count / (self.false_negative_count + self.true_positive_count)
+
+    @property
+    def equal_error_rate(self) -> float:
+        """
+        The equal error rate of the training results, calculated using the FAR and FRR values.
+
+        :return: The equal error rate.
+        """
+        return (self.false_accept_rate + self.false_reject_rate) / 2
 
 
 @dataclasses.dataclass

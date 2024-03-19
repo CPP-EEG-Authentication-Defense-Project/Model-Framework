@@ -4,9 +4,11 @@ import logging
 import time
 import numpy.typing as np_types
 
+from sklearn.metrics import confusion_matrix
+
 from .data.base import DatasetDownloader, DatasetReader
-from .training.base import DataLabeller, LabelledSubjectData
-from .training.labelling import SubjectDataStratificationHandler
+from .training.base import DataLabeller, LabelledSubjectData, TrainingDataPair
+from .training.labelling import SubjectDataPreparer
 from .training.results import TrainingResult, TrainingStatistics
 from .processor import DataProcessor
 from .utils.logging_helpers import PrefixedLoggingAdapter, LOGGER_NAME
@@ -25,11 +27,13 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
                  data_downloader: DatasetDownloader,
                  data_reader: DatasetReader,
                  data_labeller: DataLabeller,
-                 data_processor: DataProcessor):
+                 data_processor: DataProcessor,
+                 random_state: typing.Union[int, float] = 42):
         self.data_downloader = data_downloader
         self.data_reader = data_reader
         self.data_labeller = data_labeller
         self.data_processor = data_processor
+        self.random_state = random_state
 
     @abc.abstractmethod
     def create_classifier(self) -> M:
@@ -40,7 +44,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         """
         pass
 
-    @abc.abstractmethod
+    # noinspection PyMethodMayBeStatic
     def train_classifier(self, model: M, x_data: np_types.ArrayLike, y_data: np_types.ArrayLike):
         """
         Executes the training routine on a given model with the given data.
@@ -49,9 +53,9 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :param x_data: the X input data.
         :param y_data: the Y expected output data.
         """
-        pass
+        model.fit(x_data, y_data)
 
-    @abc.abstractmethod
+    # noinspection PyMethodMayBeStatic
     def score_classifier(self, model: M, x_data: np_types.ArrayLike, y_data: np_types.ArrayLike) -> float:
         """
         Executes the scoring routine on a given model with the given data.
@@ -61,7 +65,63 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         :param y_data: the Y expected output data.
         :returns: the overall score.
         """
-        pass
+        return model.score(x_data, y_data)
+
+    # noinspection PyMethodMayBeStatic
+    def get_auth_performance_data(self,
+                                  model: M,
+                                  validation_data: TrainingDataPair) -> typing.Tuple[float, float, float, float]:
+        """
+        Calculates authentication performance data for the given model. The performance data is:
+        true negative, false positive, false negative, and true positive.
+
+        :param model: The model to use for calculation of authentication performance metrics.
+        :param validation_data: The validation to use for the calculation.
+        :return: A tuple containing the true negative, false positive, false negative, and true positive counts.
+        """
+        predictions = model.predict(validation_data.x)
+        return confusion_matrix(validation_data.y, predictions).ravel()
+
+    def train_on_subject_data(self,
+                              model: M,
+                              subject_data_map: typing.Dict[str, LabelledSubjectData[D]],
+                              subject: str,
+                              k_folds: int) -> TrainingStatistics:
+        """
+        Runs the k-fold cross validation training routine on the given model.
+
+        :param model: The model to train.
+        :param subject_data_map: A map of data for all the subject models being trained.
+        :param subject: The subject key to use to tailor training.
+        :param k_folds: The number of folds.
+        :return: Statistics associated with the training executed.
+        """
+        subject_logger = PrefixedLoggingAdapter(f'[subject: {subject}]', _logger)
+        data_preparer = SubjectDataPreparer(k_folds, random_state=self.random_state)
+        training_stats = TrainingStatistics()
+        subject_logger.info('Starting training process')
+        subject_logger.info('Generating dataset')
+        training_data = data_preparer.get_data(subject_data_map, subject)
+        subject_logger.info('Training model')
+        iteration_count = 1
+        training_stats.train_start = time.time()
+        for segment in training_data.stratified_training_data:
+            subject_logger.info(f'Running training fold {iteration_count}')
+            self.train_classifier(model, segment.train.x, segment.train.y)
+            training_stats.scores.append(
+                self.score_classifier(model, segment.test.x, segment.test.y)
+            )
+            iteration_count += 1
+        training_stats.train_end = time.time()
+        subject_logger.info('Training complete')
+        subject_logger.info('Beginning model evaluation')
+        tn, fp, fn, tp = self.get_auth_performance_data(model, training_data.validation_data)
+        training_stats.true_negative_count = tn
+        training_stats.false_positive_count = fp
+        training_stats.false_negative_count = fn
+        training_stats.true_positive_count = tp
+        subject_logger.info('Model evaluation complete')
+        return training_stats
 
     def run_training(self, labelled_data: typing.Dict[str, LabelledSubjectData[D]], k_folds: int) -> TrainingResult[M]:
         """
@@ -75,32 +135,17 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
             subject: self.create_classifier()
             for subject in labelled_data
         }
-        training_stats: typing.Dict[str, TrainingStatistics] = {
-            subject: TrainingStatistics(train_start=0, train_end=0, scores=[])
-            for subject in labelled_data
-        }
-        stratification_handler = SubjectDataStratificationHandler(k_folds)
+        training_stats_map: typing.Dict[str, TrainingStatistics] = {}
         for subject in labelled_data:
-            subject_logger = PrefixedLoggingAdapter(f'[subject: {subject}]', _logger)
-            subject_logger.info('Starting training process')
-            subject_logger.info('Generating stratified dataset')
-            stratified_data = stratification_handler.get_k_folds_data(labelled_data, subject)
-            model = subject_models[subject]
-            subject_logger.info('Training model...')
-            iteration_count = 1
-            training_stats[subject].train_start = time.time()
-            for segment in stratified_data:
-                subject_logger.info(f'Running training fold {iteration_count}')
-                self.train_classifier(model, segment.train.x, segment.train.y)
-                training_stats[subject].scores.append(
-                    self.score_classifier(model, segment.test.x, segment.test.y)
-                )
-                iteration_count += 1
-            training_stats[subject].train_end = time.time()
-            subject_logger.info('Training complete')
+            training_stats_map[subject] = self.train_on_subject_data(
+                subject_models[subject],
+                labelled_data,
+                subject,
+                k_folds
+            )
         return TrainingResult(
             subject_models,
-            training_stats
+            training_stats_map
         )
 
     def train(self, k_folds=10) -> TrainingResult[M]:

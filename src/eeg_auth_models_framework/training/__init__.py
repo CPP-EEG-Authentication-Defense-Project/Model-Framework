@@ -1,2 +1,2 @@
 from .base import LabelledSubjectData, DataLabeller
-from .labelling import SubjectDataLabeller, SubjectDataStratificationHandler
+from .labelling import SubjectDataLabeller, SubjectDataPreparer
