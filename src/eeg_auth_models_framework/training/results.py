@@ -1,7 +1,6 @@
 import dataclasses
 import typing
 import statistics
-import numpy as np
 
 
 M = typing.TypeVar('M')
@@ -18,7 +17,6 @@ class TrainingStatistics:
     false_positive_count: int = 0
     false_negative_count: int = 0
     true_negative_count: int = 0
-    positive_rate_thresholds: typing.Optional[np.ndarray] = None
     scores: typing.List[float] = dataclasses.field(default_factory=list)
 
     @property
