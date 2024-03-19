@@ -55,6 +55,15 @@ class TrainingStatistics:
         """
         return self.false_negative_count / (self.false_negative_count + self.true_positive_count)
 
+    @property
+    def equal_error_rate(self) -> float:
+        """
+        The equal error rate of the training results, calculated using the FAR and FRR values.
+
+        :return: The equal error rate.
+        """
+        return (self.false_accept_rate + self.false_reject_rate) / 2
+
 
 @dataclasses.dataclass
 class TrainingResult(typing.Generic[M]):
