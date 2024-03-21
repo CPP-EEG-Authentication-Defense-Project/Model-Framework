@@ -56,7 +56,7 @@ class DataProcessor:
         feature_data = self.apply_feature_extraction_steps(pre_processed_data)
         if self.normalization_steps:
             if self.is_metadata_required and metadata is None:
-                metadata = self.get_metadata_from_features(feature_data)
+                raise ValueError('Metadata is required for normalization.')
             feature_data = self.apply_normalization_steps(feature_data, **{NormalizationStep.METADATA_KEY: metadata})
         if self.reducer:
             feature_data = self.apply_reduction(feature_data)
@@ -72,15 +72,6 @@ class DataProcessor:
         """
         pre_processed_data = self.apply_pre_process_steps(dataframes)
         feature_data = self.apply_feature_extraction_steps(pre_processed_data)
-        return self.get_metadata_from_features(feature_data)
-
-    def get_metadata_from_features(self, feature_data: typing.List[np.ndarray]) -> FeatureMetaDataIndex:
-        """
-        Retrieves a metadata index from a list of feature vectors.
-
-        :param feature_data: The feature vectors to be used to extract metadata.
-        :return: The metadata index.
-        """
         features_dataframe = self._convert_features_to_dataframe(feature_data)
         return self._get_metadata_index(features_dataframe)
 
