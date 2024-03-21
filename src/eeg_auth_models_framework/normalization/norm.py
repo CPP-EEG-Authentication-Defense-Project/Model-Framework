@@ -10,7 +10,8 @@ class L1NormalizationStep(base.NormalizationStep):
     """
     metadata_required = True
 
-    def normalize(self, data: np.ndarray) -> np.ndarray:
-        mean_centered_data = data - self.metadata.get_metadata_vector('mean')
+    def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
+        metadata: base.FeatureMetaDataIndex = kwargs[self.metadata_key]
+        mean_centered_data = data - metadata.get_metadata_vector('mean')
         normalized_vector = mean_centered_data / np.linalg.norm(mean_centered_data, ord=1)
         return normalized_vector

@@ -15,7 +15,7 @@ class RescaleNormalizationStep(base.NormalizationStep):
         self.upper = upper
         self.lower = lower
 
-    def normalize(self, data: np.ndarray) -> np.ndarray:
+    def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
         return self.apply_rescale_operation(data, upper=self.upper, lower=self.lower)
 
     @staticmethod

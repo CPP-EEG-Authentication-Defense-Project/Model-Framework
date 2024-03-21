@@ -14,12 +14,12 @@ class HistogramEqualizationStep(base.NormalizationStep):
     """
     metadata_required = False
 
-    def __init__(self, metadata: base.FeatureMetaDataIndex, lower=0, upper=255):
-        super().__init__(metadata)
+    def __init__(self, lower=0, upper=255):
+        super().__init__()
         self.lower = lower
         self.upper = upper
 
-    def normalize(self, data: np.ndarray) -> np.ndarray:
+    def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
         data_size = len(data)
         cumulative_histogram = self._calculate_equalized_cumulative_histogram(data)
         normalized_output = numpy.zeros(data_size)
