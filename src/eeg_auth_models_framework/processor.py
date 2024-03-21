@@ -7,7 +7,7 @@ import numpy as np
 from scipy import stats
 from .pre_process import PreProcessingPipeline
 from .features import FeatureExtractPipeline
-from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData
+from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData, NormalizationStep
 from .reduction import FeatureReduction
 from .utils.logging_helpers import LOGGER_NAME, PrefixedLoggingAdapter
 
@@ -30,18 +30,34 @@ class DataProcessor:
         self.reducer = reducer
         self.prefixed_logger = PrefixedLoggingAdapter('[Data Processor]', _logger)
 
-    def process(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[np.ndarray]:
+    @property
+    def is_metadata_required(self):
+        """
+        Property which determines whether metadata is required for any potential normalization in data processing.
+
+        :return: A flag indicating whether metadata is required.
+        """
+        if self.normalization_steps is None:
+            return False
+        return any(norm_step.metadata_required for norm_step in self.normalization_steps)
+
+    def process(self,
+                dataframes: typing.List[pd.DataFrame],
+                metadata: FeatureMetaDataIndex = None) -> typing.List[np.ndarray]:
         """
         Utility method which combines the application of pre-processing and feature extraction into
         one callable.
 
         :param dataframes: The raw Dataframes to be processed.
+        :param metadata: Optional metadata to use for normalization.
         :return: The processed data features.
         """
         pre_processed_data = self.apply_pre_process_steps(dataframes)
         feature_data = self.apply_feature_extraction_steps(pre_processed_data)
         if self.normalization_steps:
-            feature_data = self.apply_normalization_steps(feature_data)
+            if self.is_metadata_required and metadata is None:
+                raise ValueError('Metadata is required for normalization.')
+            feature_data = self.apply_normalization_steps(feature_data, **{NormalizationStep.METADATA_KEY: metadata})
         if self.reducer:
             feature_data = self.apply_reduction(feature_data)
         return feature_data
@@ -90,7 +106,7 @@ class DataProcessor:
         )
         return [self.feature_extraction_steps.run(frame) for frame in dataframes]
 
-    def apply_normalization_steps(self, data: typing.List[np.ndarray]) -> typing.List[np.ndarray]:
+    def apply_normalization_steps(self, data: typing.List[np.ndarray], **kwargs) -> typing.List[np.ndarray]:
         """
         Applies normalization steps to the given list of feature vectors, applying a new list of normalized
         feature vectors.
@@ -103,7 +119,7 @@ class DataProcessor:
         self.prefixed_logger.info(
             f'Applying {len(self.normalization_steps)} normalization steps to {len(data)} frames'
         )
-        return [self.normalization_steps.run(features) for features in data]
+        return [self.normalization_steps.run(features, **kwargs) for features in data]
 
     def apply_reduction(self, data: typing.List[np.ndarray]) -> typing.List[np.ndarray]:
         """

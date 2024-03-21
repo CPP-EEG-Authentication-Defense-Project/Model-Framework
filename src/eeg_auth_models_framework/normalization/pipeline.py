@@ -8,7 +8,7 @@ class NormalizationPipeline(pipeline.DataPipeline[NormalizationStep, np.ndarray,
     """
     Specialized list of normalization steps to be run on input data.
     """
-    def run(self, data: np.ndarray) -> np.ndarray:
+    def run(self, data: np.ndarray, **kwargs) -> np.ndarray:
         """
         Executes a sequence of normalization steps on a given data array, returning
         a normalized version of the original array.
@@ -18,5 +18,5 @@ class NormalizationPipeline(pipeline.DataPipeline[NormalizationStep, np.ndarray,
         """
         normalized_data = data
         for step in self:
-            normalized_data = step.normalize(normalized_data)
+            normalized_data = step.apply_normalization(normalized_data, **kwargs)
         return normalized_data

@@ -13,9 +13,10 @@ class MedianNormalizationStep(base.NormalizationStep):
     """
     metadata_required = True
 
-    def normalize(self, data: np.ndarray) -> np.ndarray:
-        median_data = self.metadata.get_metadata_vector('median')
+    def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
+        metadata: base.FeatureMetaDataIndex = kwargs[self.METADATA_KEY]
+        median_data = metadata.get_metadata_vector('median')
         normalized_data = data - median_data
-        median_data = self.metadata.get_metadata_vector('median_abs_dev')
+        median_data = metadata.get_metadata_vector('median_abs_dev')
         normalized_data = normalized_data / median_data
         return normalized_data

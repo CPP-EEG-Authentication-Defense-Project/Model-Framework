@@ -41,13 +41,25 @@ class NormalizationStep(abc.ABC):
     """
     Base class defining the interface for all normalization steps.
     """
-    def __init__(self, metadata: FeatureMetaDataIndex = None):
-        self.metadata = metadata
-        if self.metadata_required and self.metadata is None:
-            raise ValueError(f'Metadata is required to use {self.__class__.__name__}!')
+    METADATA_KEY = 'metadata'
+
+    def apply_normalization(self, data: np.ndarray, **kwargs) -> np.ndarray:
+        """
+        Executes normalization procedure, with the additional step of validating whether metadata was passed in
+        (if it is required).
+
+        :param data: The data to normalize.
+        :return: The normalized data.
+        """
+        if self.metadata_required and self.METADATA_KEY not in kwargs:
+            raise ValueError(
+                f'{self.__class__.__name__} requires metadata to be passed in under the name "{self.METADATA_KEY}" to'
+                f'perform normalization.'
+            )
+        return self.normalize(data, **kwargs)
 
     @abc.abstractmethod
-    def normalize(self, data: np.ndarray) -> np.ndarray:
+    def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
         """
         Applies normalization to the given feature vector.
 
