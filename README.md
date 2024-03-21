@@ -62,4 +62,5 @@ abstractions and the standard `DataPipeline` interface used by the other sub-pac
 This framework leverages the following resources:
 
 1. Auditory-evoked EEG dataset: https://doi.org/10.13026/ps31-fc50
+   1. Via Physionet (https://doi.org/10.1161/01.cir.101.23.e215)
 2. Biometric normalization techniques: https://doi.org/10.1109/TIFS.2019.2904844
