@@ -7,7 +7,7 @@ import numpy as np
 from scipy import stats
 from .pre_process import PreProcessingPipeline
 from .features import FeatureExtractPipeline
-from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData
+from .normalization import NormalizationPipeline, FeatureMetaDataIndex, FeatureMetaData, NormalizationStep
 from .reduction import FeatureReduction
 from .utils.logging_helpers import LOGGER_NAME, PrefixedLoggingAdapter
 
@@ -53,7 +53,7 @@ class DataProcessor:
         feature_data = self.apply_feature_extraction_steps(pre_processed_data)
         if self.normalization_steps:
             metadata = self.get_metadata_from_features(feature_data) if self.is_metadata_required else None
-            feature_data = self.apply_normalization_steps(feature_data, metadata=metadata)
+            feature_data = self.apply_normalization_steps(feature_data, **{NormalizationStep.METADATA_KEY: metadata})
         if self.reducer:
             feature_data = self.apply_reduction(feature_data)
         return feature_data
