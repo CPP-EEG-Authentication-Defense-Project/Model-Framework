@@ -18,5 +18,5 @@ class NormalizationPipeline(pipeline.DataPipeline[NormalizationStep, np.ndarray,
         """
         normalized_data = data
         for step in self:
-            normalized_data = step.normalize(normalized_data, **kwargs)
+            normalized_data = step.apply_normalization(normalized_data, **kwargs)
         return normalized_data

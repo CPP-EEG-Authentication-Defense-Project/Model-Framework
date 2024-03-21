@@ -41,6 +41,23 @@ class NormalizationStep(abc.ABC):
     """
     Base class defining the interface for all normalization steps.
     """
+    metadata_key = 'metadata'
+
+    def apply_normalization(self, data: np.ndarray, **kwargs) -> np.ndarray:
+        """
+        Executes normalization procedure, with the additional step of validating whether metadata was passed in
+        (if it is required).
+
+        :param data: The data to normalize.
+        :return: The normalized data.
+        """
+        if self.metadata_required and self.metadata_key not in kwargs:
+            raise ValueError(
+                f'{self.__class__.__name__} requires metadata to be passed in under the name "{self.metadata_key}" to'
+                f'perform normalization.'
+            )
+        return self.normalize(data, **kwargs)
+
     @abc.abstractmethod
     def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
         """
