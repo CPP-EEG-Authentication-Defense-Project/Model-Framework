@@ -41,18 +41,22 @@ class DataProcessor:
             return False
         return any(norm_step.metadata_required for norm_step in self.normalization_steps)
 
-    def process(self, dataframes: typing.List[pd.DataFrame]) -> typing.List[np.ndarray]:
+    def process(self,
+                dataframes: typing.List[pd.DataFrame],
+                metadata: FeatureMetaDataIndex = None) -> typing.List[np.ndarray]:
         """
         Utility method which combines the application of pre-processing and feature extraction into
         one callable.
 
         :param dataframes: The raw Dataframes to be processed.
+        :param metadata: Optional metadata to use for normalization.
         :return: The processed data features.
         """
         pre_processed_data = self.apply_pre_process_steps(dataframes)
         feature_data = self.apply_feature_extraction_steps(pre_processed_data)
         if self.normalization_steps:
-            metadata = self.get_metadata_from_features(feature_data) if self.is_metadata_required else None
+            if self.is_metadata_required and metadata is None:
+                metadata = self.get_metadata_from_features(feature_data)
             feature_data = self.apply_normalization_steps(feature_data, **{NormalizationStep.METADATA_KEY: metadata})
         if self.reducer:
             feature_data = self.apply_reduction(feature_data)
