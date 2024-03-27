@@ -69,14 +69,14 @@ class SubjectDataPreparer(typing.Generic[D]):
         :return: an object wrapping the training data that was assembled.
         """
         labelled_data = subject_data[target_subject]
-        x_data = labelled_data.data
+        x_data = np.array(labelled_data.data)
         y_data = np.array(labelled_data.labels)
         k_folds_data = self._generate_subject_splits(x_data, y_data)
 
         return k_folds_data
 
     def _generate_subject_splits(self,
-                                 x_data: typing.List[D],
+                                 x_data: np_types.ArrayLike,
                                  y_data: np_types.ArrayLike) -> typing.List[StratifiedSubjectData]:
         """
         Utility method which generates a list of stratified data for the given x-y combination.

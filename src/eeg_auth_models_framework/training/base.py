@@ -22,7 +22,7 @@ class TrainingDataPair:
     """
     Container for x-y related data generated from stratification.
     """
-    x: typing.List[numpy.typing.ArrayLike]
+    x: numpy.typing.ArrayLike[numpy.typing.ArrayLike]
     y: numpy.typing.ArrayLike
 
 
