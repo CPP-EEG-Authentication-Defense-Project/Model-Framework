@@ -14,10 +14,10 @@ class TrainingStatistics:
     """
     train_start: float = 0
     train_end: float = 0
-    true_positives: typing.List[int] = dataclasses.field(default_factory=list)
-    false_positives: typing.List[int] = dataclasses.field(default_factory=list)
-    false_negatives: typing.List[int] = dataclasses.field(default_factory=list)
-    true_negatives: typing.List[int] = dataclasses.field(default_factory=list)
+    true_positives: typing.List[typing.SupportsInt] = dataclasses.field(default_factory=list)
+    false_positives: typing.List[typing.SupportsInt] = dataclasses.field(default_factory=list)
+    false_negatives: typing.List[typing.SupportsInt] = dataclasses.field(default_factory=list)
+    true_negatives: typing.List[typing.SupportsInt] = dataclasses.field(default_factory=list)
     scores: typing.List[float] = dataclasses.field(default_factory=list)
 
     @property
