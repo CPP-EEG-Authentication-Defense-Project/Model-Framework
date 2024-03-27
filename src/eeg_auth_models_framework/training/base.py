@@ -35,15 +35,6 @@ class StratifiedSubjectData:
     test: TrainingDataPair
 
 
-@dataclasses.dataclass
-class SubjectModelTrainingData:
-    """
-    Container for all data used for training/validation of a model for a subject.
-    """
-    stratified_training_data: typing.List[StratifiedSubjectData]
-    validation_data: TrainingDataPair
-
-
 class DataLabeller(abc.ABC, typing.Generic[D]):
     """
     Base class defining the common interface for data labeller implementations.

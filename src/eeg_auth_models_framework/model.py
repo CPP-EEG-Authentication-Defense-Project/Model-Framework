@@ -105,22 +105,19 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         subject_logger.info('Training model')
         iteration_count = 1
         training_stats.train_start = time.time()
-        for segment in training_data.stratified_training_data:
+        for segment in training_data:
             subject_logger.info(f'Running training fold {iteration_count}')
             self.train_classifier(model, segment.train.x, segment.train.y)
             training_stats.scores.append(
                 self.score_classifier(model, segment.test.x, segment.test.y)
             )
+            tn, fp, fn, tp = self.get_auth_performance_data(model, segment.test)
+            training_stats.true_negatives.append(tn)
+            training_stats.false_positives.append(fp)
+            training_stats.false_negatives.append(fn)
+            training_stats.true_positives.append(tp)
             iteration_count += 1
         training_stats.train_end = time.time()
-        subject_logger.info('Training complete')
-        subject_logger.info('Beginning model evaluation')
-        tn, fp, fn, tp = self.get_auth_performance_data(model, training_data.validation_data)
-        training_stats.true_negative_count = tn
-        training_stats.false_positive_count = fp
-        training_stats.false_negative_count = fn
-        training_stats.true_positive_count = tp
-        subject_logger.info('Model evaluation complete')
         return training_stats
 
     def run_training(self, labelled_data: typing.Dict[str, LabelledSubjectData[D]], k_folds: int) -> TrainingResult[M]:
