@@ -1,8 +1,8 @@
 import typing
 import numpy as np
 import numpy.typing as np_types
-from sklearn.model_selection import StratifiedKFold, train_test_split
-from .base import DataLabeller, LabelledSubjectData, StratifiedSubjectData, TrainingDataPair, SubjectModelTrainingData
+from sklearn.model_selection import StratifiedKFold
+from .base import DataLabeller, LabelledSubjectData, StratifiedSubjectData, TrainingDataPair
 
 
 D = typing.TypeVar('D')
@@ -58,7 +58,7 @@ class SubjectDataPreparer(typing.Generic[D]):
 
     def get_data(self,
                  subject_data: typing.Dict[str, LabelledSubjectData[D]],
-                 target_subject: str) -> SubjectModelTrainingData:
+                 target_subject: str) -> typing.List[StratifiedSubjectData]:
         """
         Generates training/test/validation data to be used for training a specific subject model. The training/test
         data will be split into stratified k-folds, while the validation data will be separated out from the training
@@ -69,23 +69,14 @@ class SubjectDataPreparer(typing.Generic[D]):
         :return: an object wrapping the training data that was assembled.
         """
         labelled_data = subject_data[target_subject]
-        x_data = np.array(labelled_data.data)
+        x_data = labelled_data.data
         y_data = np.array(labelled_data.labels)
-        x_train, x_test, y_train, y_test = train_test_split(
-            x_data, y_data, test_size=self.validation_set_size, random_state=self.random_state, shuffle=False
-        )
-        k_folds_data = self._generate_subject_splits(x_train, y_train)
+        k_folds_data = self._generate_subject_splits(x_data, y_data)
 
-        return SubjectModelTrainingData(
-            stratified_training_data=k_folds_data,
-            validation_data=TrainingDataPair(
-                x=x_test,
-                y=y_test
-            )
-        )
+        return k_folds_data
 
     def _generate_subject_splits(self,
-                                 x_data: typing.List[np_types.ArrayLike],
+                                 x_data: typing.List[D],
                                  y_data: np_types.ArrayLike) -> typing.List[StratifiedSubjectData]:
         """
         Utility method which generates a list of stratified data for the given x-y combination.

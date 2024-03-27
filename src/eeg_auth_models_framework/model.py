@@ -105,7 +105,7 @@ class ModelBuilder(abc.ABC, typing.Generic[M]):
         subject_logger.info('Training model')
         iteration_count = 1
         training_stats.train_start = time.time()
-        for segment in training_data.stratified_training_data:
+        for segment in training_data:
             subject_logger.info(f'Running training fold {iteration_count}')
             self.train_classifier(model, segment.train.x, segment.train.y)
             training_stats.scores.append(

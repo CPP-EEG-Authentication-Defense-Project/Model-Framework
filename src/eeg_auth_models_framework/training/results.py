@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 import typing
 import statistics
 
@@ -13,10 +14,10 @@ class TrainingStatistics:
     """
     train_start: float = 0
     train_end: float = 0
-    true_positive_count: int = 0
-    false_positive_count: int = 0
-    false_negative_count: int = 0
-    true_negative_count: int = 0
+    true_positives: typing.List[int] = dataclasses.field(default_factory=list)
+    false_positives: typing.List[int] = dataclasses.field(default_factory=list)
+    false_negatives: typing.List[int] = dataclasses.field(default_factory=list)
+    true_negatives: typing.List[int] = dataclasses.field(default_factory=list)
     scores: typing.List[float] = dataclasses.field(default_factory=list)
 
     @property
@@ -37,32 +38,39 @@ class TrainingStatistics:
         """
         return statistics.mean(self.scores)
 
-    @property
-    def false_accept_rate(self) -> float:
+    @functools.cached_property
+    def false_accept_rates(self) -> typing.List[float]:
         """
-        The false acceptance rate of the training results.
+        Calculates the false acceptance rates from the training results.
+        Note: the false acceptance rates are cached.
 
-        :return: The rate.
+        :return: The false acceptance rates.
         """
-        return self.false_positive_count / (self.false_positive_count + self.true_negative_count)
+        rates = []
 
-    @property
-    def false_reject_rate(self) -> float:
-        """
-        The false rejection rate of the training results.
+        for fp, tn in zip(self.false_positives, self.true_negatives):
+            rates.append(
+                fp / (fp + tn)
+            )
 
-        :return: The rate.
-        """
-        return self.false_negative_count / (self.false_negative_count + self.true_positive_count)
+        return rates
 
-    @property
-    def equal_error_rate(self) -> float:
+    @functools.cached_property
+    def false_reject_rates(self) -> typing.List[float]:
         """
-        The equal error rate of the training results, calculated using the FAR and FRR values.
+        Calculates the false rejection rates from the training results.
+        Note: the false rejection rates are cached.
 
-        :return: The equal error rate.
+        :return: The false rejection rates.
         """
-        return (self.false_accept_rate + self.false_reject_rate) / 2
+        rates = []
+
+        for fn, tp in zip(self.false_negatives, self.true_positives):
+            rates.append(
+                fn / (fn + tp)
+            )
+
+        return rates
 
 
 @dataclasses.dataclass
