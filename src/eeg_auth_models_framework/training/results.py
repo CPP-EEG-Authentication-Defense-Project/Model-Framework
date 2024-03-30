@@ -89,10 +89,10 @@ class TrainingResult(typing.Generic[M]):
 
         :return: The global average value.
         """
-        averages = []
-        for statistical_data in self.training_statistics.values():
-            averages.append(statistical_data.average_score)
-        return statistics.mean(averages)
+        return statistics.mean([
+            stats.average_score
+            for stats in self.training_statistics.values()
+        ])
 
     @property
     def global_average_time(self) -> float:
@@ -101,5 +101,7 @@ class TrainingResult(typing.Generic[M]):
 
         :return: The average training time.
         """
-        training_times = [stats.training_duration for stats in self.training_statistics.values()]
-        return statistics.mean(training_times)
+        return statistics.mean([
+            stats.training_duration
+            for stats in self.training_statistics.values()
+        ])
