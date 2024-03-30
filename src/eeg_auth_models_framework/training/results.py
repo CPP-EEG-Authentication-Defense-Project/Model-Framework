@@ -1,5 +1,4 @@
 import dataclasses
-import functools
 import typing
 import statistics
 
@@ -38,7 +37,7 @@ class TrainingStatistics:
         """
         return statistics.mean(self.scores)
 
-    @functools.cached_property
+    @property
     def false_accept_rates(self) -> typing.List[float]:
         """
         Calculates the false acceptance rates from the training results.
@@ -55,7 +54,7 @@ class TrainingStatistics:
 
         return rates
 
-    @functools.cached_property
+    @property
     def false_reject_rates(self) -> typing.List[float]:
         """
         Calculates the false rejection rates from the training results.
@@ -81,27 +80,6 @@ class TrainingResult(typing.Generic[M]):
     models: typing.Dict[str, M]
     training_statistics: typing.Dict[str, TrainingStatistics]
 
-    def get_model(self, key: str) -> typing.Optional[M]:
-        """
-        Retrieves a trained model from the result.
-
-        :param key: the key to use to search for the model.
-        :return: the model, or None if it does not exist.
-        """
-        return self.models.get(key)
-
-    def get_average_score(self, key: str) -> typing.Optional[float]:
-        """
-        Retrieves an average score from the result.
-
-        :param key: the key to use to search for scores.
-        :return: the average score for the given key, or None if there is no average.
-        """
-        statistical_data = self.training_statistics.get(key)
-        if not statistical_data:
-            return None
-        return statistical_data.average_score
-
     @property
     def global_average_score(self) -> float:
         """
@@ -110,10 +88,10 @@ class TrainingResult(typing.Generic[M]):
 
         :return: The global average value.
         """
-        averages = []
-        for statistical_data in self.training_statistics.values():
-            averages.append(statistical_data.average_score)
-        return statistics.mean(averages)
+        return statistics.mean([
+            stats.average_score
+            for stats in self.training_statistics.values()
+        ])
 
     @property
     def global_average_time(self) -> float:
@@ -122,14 +100,51 @@ class TrainingResult(typing.Generic[M]):
 
         :return: The average training time.
         """
-        training_times = [stats.training_duration for stats in self.training_statistics.values()]
-        return statistics.mean(training_times)
+        return statistics.mean([
+            stats.training_duration
+            for stats in self.training_statistics.values()
+        ])
 
-    def iter_subject_average_scores(self) -> typing.Iterator[typing.Tuple[str, float]]:
+    @property
+    def far_averages(self) -> typing.List[float]:
         """
-        Utility method for iterating over all the average scores associated with each subject in the results set.
+        Retrieves a list of average false acceptance rates, based on the current training statistics.
 
-        :return: The iterator over the average scores associated with each subject.
+        :return: The list of averages.
         """
-        for subject, statistical_data in self.training_statistics.items():
-            yield subject, statistical_data.average_score
+        return [
+            statistics.mean(stats.false_accept_rates)
+            for stats in self.training_statistics.values()
+        ]
+
+    @property
+    def frr_averages(self) -> typing.List[float]:
+        """
+        Retrieves a list of average false rejection rates, based on the current training statistics.
+
+        :return: The list of averages.
+        """
+        return [
+            statistics.mean(stats.false_reject_rates)
+            for stats in self.training_statistics.values()
+        ]
+
+    @property
+    def global_average_far_rate(self) -> float:
+        """
+        Calculates a global average false acceptance rate, based on all the false acceptance rate averages
+        in the current training statistics.
+
+        :return: The global average.
+        """
+        return statistics.mean(self.far_averages)
+
+    @property
+    def global_average_frr_rate(self) -> float:
+        """
+        Calculates a global average false rejection rate, based on all the false rejection rate averages
+        in the current training statistics.
+
+        :return: The global average.
+        """
+        return statistics.mean(self.frr_averages)
