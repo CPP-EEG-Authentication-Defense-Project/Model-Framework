@@ -90,18 +90,6 @@ class TrainingResult(typing.Generic[M]):
         """
         return self.models.get(key)
 
-    def get_average_score(self, key: str) -> typing.Optional[float]:
-        """
-        Retrieves an average score from the result.
-
-        :param key: the key to use to search for scores.
-        :return: the average score for the given key, or None if there is no average.
-        """
-        statistical_data = self.training_statistics.get(key)
-        if not statistical_data:
-            return None
-        return statistical_data.average_score
-
     @property
     def global_average_score(self) -> float:
         """
@@ -124,12 +112,3 @@ class TrainingResult(typing.Generic[M]):
         """
         training_times = [stats.training_duration for stats in self.training_statistics.values()]
         return statistics.mean(training_times)
-
-    def iter_subject_average_scores(self) -> typing.Iterator[typing.Tuple[str, float]]:
-        """
-        Utility method for iterating over all the average scores associated with each subject in the results set.
-
-        :return: The iterator over the average scores associated with each subject.
-        """
-        for subject, statistical_data in self.training_statistics.items():
-            yield subject, statistical_data.average_score
