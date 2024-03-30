@@ -81,15 +81,6 @@ class TrainingResult(typing.Generic[M]):
     models: typing.Dict[str, M]
     training_statistics: typing.Dict[str, TrainingStatistics]
 
-    def get_model(self, key: str) -> typing.Optional[M]:
-        """
-        Retrieves a trained model from the result.
-
-        :param key: the key to use to search for the model.
-        :return: the model, or None if it does not exist.
-        """
-        return self.models.get(key)
-
     @property
     def global_average_score(self) -> float:
         """
