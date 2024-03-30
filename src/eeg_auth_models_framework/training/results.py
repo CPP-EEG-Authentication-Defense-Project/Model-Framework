@@ -1,5 +1,4 @@
 import dataclasses
-import functools
 import typing
 import statistics
 
@@ -38,7 +37,7 @@ class TrainingStatistics:
         """
         return statistics.mean(self.scores)
 
-    @functools.cached_property
+    @property
     def false_accept_rates(self) -> typing.List[float]:
         """
         Calculates the false acceptance rates from the training results.
@@ -55,7 +54,7 @@ class TrainingStatistics:
 
         return rates
 
-    @functools.cached_property
+    @property
     def false_reject_rates(self) -> typing.List[float]:
         """
         Calculates the false rejection rates from the training results.
