@@ -10,10 +10,10 @@ class RescaleNormalizationStep(base.NormalizationStep):
     """
     metadata_required = False
 
-    def __init__(self, upper=0, lower=255):
+    def __init__(self, lower=0, upper=255):
         super().__init__()
-        self.upper = upper
         self.lower = lower
+        self.upper = upper
 
     def normalize(self, data: np.ndarray, **kwargs) -> np.ndarray:
         return self.apply_rescale_operation(data, upper=self.upper, lower=self.lower)
